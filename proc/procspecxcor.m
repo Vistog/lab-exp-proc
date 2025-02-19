@@ -4,7 +4,7 @@ function [xcor, t] = procspecxcor(sxy, kwargs)
         kwargs.sxx double = []
         kwargs.syy double = []
         kwargs.fs (1,1) double = 1
-        kwargs.type (1,:) char {mustBeMember(kwargs.type , {'norm', 'tf', 'csd'})} = 'csd'
+        kwargs.type (1,:) char {mustBeMember(kwargs.type , {'norm', 'tf', 'csd', 'cor'})} = 'csd'
         kwargs.omitfreq (1,:) double = []
     end
 
@@ -14,6 +14,8 @@ function [xcor, t] = procspecxcor(sxy, kwargs)
             sxy = sxy./(sum(kwargs.sxx,1).*sum(kwargs.syy,1));
         case 'tf'
             sxy = sxy./sqrt(kwargs.syy);
+        case 'cor'
+            sxy = sxy./(std(kwargs.sxx,[], 1).*std(kwargs.syy,[], 1));
     end
     xcor = fftshift(real(ifft(sxy,[],1)),1);
 

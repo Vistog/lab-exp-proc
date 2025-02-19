@@ -212,7 +212,7 @@ function varargout = prepcta(input, kwargs)
         case 'film'
             % calculate auto/cross spectra
             result = struct;
-            [spec, f] = procspec(kwargs.raw, wintype = kwargs.wintype, winlen = kwargs.winlen, ...
+            [spec, f] = procspec(kwargs.raw, winfun = kwargs.winfun, winlen = kwargs.winlen, ...
                 overlap = kwargs.overlap, fs = kwargs.fs, norm = kwargs.norm, ans = 'double');
             df = f(2)-f(1);
 

@@ -348,6 +348,7 @@ function varargout = nonlinfilt(varargin, kwargs)
     % main loop
     nel = size(result, 1);
     parfor k = 2:nel
+    % for k = 2:nel
         dataslice = cell(1, numel(sz));
         for i = 1:numel(sz)   
             kernel = kwargs.kernel{i}(:,k);

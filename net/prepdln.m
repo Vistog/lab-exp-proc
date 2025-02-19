@@ -14,27 +14,27 @@ function varargout = prepdln(varargin, kwargs)
     end
 
     if isempty(kwargs.IterationDimension)
-        for i = 1:numel(varargin)
+        for i = 1:nargin
             kwargs.IterationDimension(i) = ndims(varargin{i});
         end
     else
-        assert(isequal(numel(kwargs.IterationDimension), numel(varargin)), "IterationDimension vectro must be have same size to data arguments")
+        assert(isequal(numel(kwargs.IterationDimension), nargin), "`IterationDimension` vectro must be have same size to data arguments")
     end
 
-    sz = zeros(1, numel(varargin)); for i = 1:numel(varargin); sz(i) = size(varargin{i}, kwargs.IterationDimension(i)); end
+    sz = zeros(1, nargin); for i = 1:nargin; sz(i) = size(varargin{i}, kwargs.IterationDimension(i)); end
 
     if numel(unique(sz)) ~= 1; error(strcat("count of iteration ", jsonencode(sz)), " along given dimensional ", ...
             jsonencode(kwargs.IterationDimension), " must be same"); end
     
     if isempty(kwargs.partition); kwargs.partition{1} = 1:sz(1); end
 
-    if isempty(kwargs.wrapper); kwargs.wrapper = repmat({[]}, 1, numel(varargin)); else
-        assert(isequal(numel(kwargs.wrapper), numel(varargin)), "wrapper vectro must be have same size to data arguments"); end
+    if isempty(kwargs.wrapper); kwargs.wrapper = repmat({[]}, 1, nargin); else
+        assert(isequal(numel(kwargs.wrapper), nargin), "`wrapper` vector must be have same size to data arguments"); end
 
-    if isempty(kwargs.transform); kwargs.transform = repmat({[]}, 1, numel(varargin)); else
-        assert(isequal(numel(kwargs.transform), numel(varargin)), "transform vectro must be have same size to data arguments"); end
+    if isempty(kwargs.transform); kwargs.transform = repmat({[]}, 1, nargin); else
+        assert(isequal(numel(kwargs.transform), nargin), "`transform` vector must be have same size to data arguments"); end
 
-    for i = 1:numel(varargin)
+    for i = 1:nargin
         if isempty(kwargs.wrapper{i})
             varargin{i} = arrayDatastore(varargin{i}, IterationDimension = kwargs.IterationDimension(i));
         else
@@ -43,7 +43,7 @@ function varargout = prepdln(varargin, kwargs)
         if ~isempty(kwargs.transform{i}); varargin{i} = transform(varargin{i}, @(x)kwargs.transform{i}(x)); end
     end
 
-    if numel(varargin) == 1; totalDataStore = varargin{1}; else; totalDataStore = combine(varargin{:}); end
+    if isscalar(varargin); totalDataStore = varargin{1}; else; totalDataStore = combine(varargin{:}); end
     if kwargs.suffle; totalDataStore = shuffle(totalDataStore); end
 
     % create data partitions

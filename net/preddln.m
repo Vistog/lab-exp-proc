@@ -1,67 +1,23 @@
-function varargout = preddln(network, data, kwargs)
-    %% Predict the train deep neural network.
+function varargout = preddln(network, data)
+    %% Predict by deep neural network.
 
     arguments
         network {mustBeA(network, {'dlnetwork'})}
-        data {mustBeA(data, {'double', 'matlab.io.datastore.ArrayDatastore', 'matlab.io.datastore.CombinedDatastore'})}
-        kwargs.type (1,:) char {mustBeMember(kwargs.type, {'simple', 'segmentation'})} = 'simple'
+        data {mustBeA(data, {'matlab.io.datastore.CombinedDatastore'})}
     end
 
-    switch kwargs.type
-        case 'segmentation'
-            if isa(data, 'double')
-                sz = size(data); if ndims(data) == 1; sz(3) = 1; end
-                result = zeros(sz);
-                for i = 1:prod(sz(3:end))
-                    [~, result(:,:,i)] = max(predict(network, data(:,:,i)), [], 3);
-                end
-                result = result - 1;
-            end
-        
-            if isa(data, 'matlab.io.datastore.ArrayDatastore')
-                data = readall(data); sz = size(data{1}); result = zeros([sz, numel(data)]);
-                for i = 1:numel(data)
-                    [~, result(:,:,i)] = max(predict(network, data{i}), [], 3);
-                end
-                result = result - 1;
-            end
-        
-            if isa(data, 'matlab.io.datastore.CombinedDatastore')
-                input = readall(data.UnderlyingDatastores{1}); output = readall(data.UnderlyingDatastores{2});
-                result = zeros([size(input{1}), numel(input)]); resultRaw = zeros([size(output{1}), numel(output)]);
-                for i = 1:numel(input)
-                    [~, result(:,:,i)] = max(predict(network, input{i}), [], 3);
-                    resultRaw(:,:,i) = double(output{i}) - 1;
-                end
-                result = result - 1;
-                varargout{2} = vecnorm(resultRaw-result, 2, 3);
-            end
-        case 'simple'
-            if isa(data, 'double')
-                sz = size(data); if ndims(data) == 1; sz(3) = 1; end
-                result = zeros(sz);
-                for i = 1:prod(sz(3:end))
-                    result(:,:,i) = predict(network, data(:,:,i));
-                end
-            end
-        
-            if isa(data, 'matlab.io.datastore.ArrayDatastore')
-                data = readall(data); sz = size(data{1}); result = zeros([sz, numel(data)]);
-                for i = 1:numel(data)
-                    result(:,:,i) = predict(network, data{i});
-                end
-            end
-        
-            if isa(data, 'matlab.io.datastore.CombinedDatastore')
-                input = readall(data.UnderlyingDatastores{1}); output = readall(data.UnderlyingDatastores{2});
-                result = zeros([size(input{1}), numel(input)]); resultRaw = zeros([size(output{1}), numel(output)]);
-                for i = 1:numel(input)
-                    result(:,:,i) = predict(network, input{i});
-                    resultRaw(:,:,i) = output{i};
-                end
-                varargout{2} = vecnorm(resultRaw-result, 2, 3);
-            end
+    X = readall(data.UnderlyingDatastores{1});
+    T = readall(data.UnderlyingDatastores{2});
+    Y = cell(numel(X), 1);
+    for i = 1:numel(X)
+        Y{i} = predict(network, X{i});
     end
-    varargout{1} = result;
 
+    wrapper = @(x) squeeze(permute(reshape(cell2mat(x), [size(x{1}, 1), numel(x), size(x{1}, 2:ndims(x{1}))]), [1, (1:ndims(X{1}))+2, 2]));
+
+    temp = {X; Y; T};
+    varargout = cell(size(temp));
+    temp = cellfun(wrapper, temp, UniformOutput = false);
+    [varargout{:}] = deal(temp{:});
+    
 end
