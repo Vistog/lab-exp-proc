@@ -4,47 +4,53 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         varargin {mustBeA(varargin, {'numeric', 'cell'})}
     end
     arguments (Input)
-        kwargs.dims (1,:) double = 1
+        kwargs.dims (1,:) {mustBeInteger, mustBePositive} = []
         kwargs.ax {mustBeMember(kwargs.ax, {'1-1', '1-n'})} = '1-1'
         kwargs.roi {mustBeMember(kwargs.roi, {'1-1', '1-n'})} = '1-1'
-        kwargs.span (1,:) cell = {}
         kwargsplt.plot char {mustBeMember(kwargsplt.plot, {'plot', 'imagesc', 'contour', 'contourf'})} = 'plot'
         kwargsplt.title {mustBeA(kwargsplt.title, {'char', 'string', 'cell'})} = ''
         kwargsplt.sgtitle (1,:) char = ''
         figparam.docked (1,1) logical = false
         figparam.arrangement {mustBeMember(figparam.arrangement, {'flow', 'vertical', 'horizontal'})} = 'flow'
         %% parameters for `set(ax, arg{:})`
-        axparamset.xscale {mustBeMember(axparamset.xscale, {'linear', 'log'})} = 'linear'
-        axparamset.yscale {mustBeMember(axparamset.yscale, {'linear', 'log'})} = 'linear'
-        axparamset.zscale {mustBeMember(axparamset.zscale, {'linear', 'log'})} = 'linear'
-        axparamset.fontsize {mustBePositive} = 10
+        axparamset.xscale {mustBeMember(axparamset.xscale, {'linear', 'log'}), mustBeA(axparamset.xscale, {'char', 'cell'})} = 'linear'
+        axparamset.yscale {mustBeMember(axparamset.yscale, {'linear', 'log'}), mustBeA(axparamset.yscale, {'char', 'cell'})} = 'linear'
+        axparamset.zscale {mustBeMember(axparamset.zscale, {'linear', 'log'}), mustBeA(axparamset.zscale, {'char', 'cell'})} = 'linear'
+        axparamset.colorscale {mustBeMember(axparamset.colorscale, {'linear', 'log'}), mustBeA(axparamset.colorscale, {'char', 'cell'})} = 'linear'
+        axparamset.fontsize {mustBeInteger, mustBePositive} = 10
         %% parameters for `xlabel(ax, arg{:})` and so on
-        axparamfunc.xlabel (1,:) char = []
-        axparamfunc.ylabel (1,:) char = []
-        axparamfunc.zlabel (1,:) char = []
-        axparamfunc.xlim (1,:) {mustBeA(axparamfunc.xlim, {'char', 'double'})} = 'auto'
-        axparamfunc.ylim (1,:) {mustBeA(axparamfunc.ylim, {'char', 'double'})} = 'auto'
-        axparamfunc.zlim (1,:) {mustBeA(axparamfunc.zlim, {'char', 'double'})} = 'auto'
-        axparamfunc.clim (1,:) {mustBeA(axparamfunc.clim, {'char', 'double'})} = 'auto'
-        axparamfunc.grid {mustBeMember(axparamfunc.grid, {'off', 'on'})} = 'on'
-        axparamfunc.box {mustBeMember(axparamfunc.box, {'off', 'on'})} = 'on'
+        axparamfunc.xlabel {mustBeA(axparamfunc.xlabel, {'char', 'cell'})} = ''
+        axparamfunc.ylabel {mustBeA(axparamfunc.ylabel, {'char', 'cell'})} = ''
+        axparamfunc.zlabel {mustBeA(axparamfunc.zlabel, {'char', 'cell'})} = ''
+        axparamfunc.xlim {mustBeA(axparamfunc.xlim, {'char', 'double', 'cell'})} = 'auto'
+        axparamfunc.ylim {mustBeA(axparamfunc.ylim, {'char', 'double', 'cell'})} = 'auto'
+        axparamfunc.zlim {mustBeA(axparamfunc.zlim, {'char', 'double', 'cell'})} = 'auto'
+        axparamfunc.clim {mustBeA(axparamfunc.clim, {'char', 'double', 'cell'})} = 'auto'
+        axparamfunc.grid {mustBeMember(axparamfunc.grid, {'off', 'on'}), mustBeA(axparamfunc.grid, {'char', 'cell'})} = 'on'
+        axparamfunc.box {mustBeMember(axparamfunc.box, {'off', 'on'}), mustBeA(axparamfunc.box, {'char', 'cell'})} = 'on'
         axparamfunc.pbaspect (1,3) {mustBePositive, mustBeNumeric} = [1, 1, 1]
-        axparamfunc.hold {mustBeMember(axparamfunc.hold, {'off', 'on'})} = 'off'
-        axparamfunc.colormap (1,:) char = 'turbo'
+        axparamfunc.hold {mustBeMember(axparamfunc.hold, {'off', 'on'}), mustBeA(axparamfunc.hold, {'char', 'cell'})} = 'off'
+        axparamfunc.colormap {mustBeMember(axparamfunc.colormap, {'parula','turbo','hsv','hot','cool','spring','summer','autumn',...
+            'winter','gray','bone','copper','pink','sky','abyss','jet','lines','colorcube','prism','flag','white'}), ...
+            mustBeA(axparamfunc.colormap, {'char', 'cell'})} = 'turbo'
         %% parameters for `axis(ax, arg{:})`
-        axparamaxis.aspect {mustBeMember(axparamaxis.aspect, {'auto', 'equal', 'image', 'square'})} = 'auto'
+        axparamaxis.aspect {mustBeMember(axparamaxis.aspect, {'auto', 'equal', 'image', 'square'}), mustBeA(axparamaxis.aspect, {'char', 'cell'})} = 'auto'
         axparamaxis.limits (1,:) {mustBeNumeric} = []
         %% parameters for `plot(ax, data{:}, arg{:})` and so on
-        pltparam.marker {mustBeMember(pltparam.marker, {'none', 'o', 's', '<', '>', '^', 'd', '.'})} = 'none'
-        pltparam.linestyle {mustBeMember(pltparam.linestyle, {'none', '-', '--', '.-', ':'})} = '-'
+        pltparam.marker {mustBeMember(pltparam.marker, {'none', 'o', 's', '<', '>', '^', 'd', '.'}), mustBeA(pltparam.marker, {'char', 'cell'})} = 'none'
+        pltparam.linestyle {mustBeMember(pltparam.linestyle, {'none', '-', '--', '.-', ':'}), mustBeA(pltparam.linestyle, {'char', 'cell'})} = '-'
         pltparam.linewidth (1,1) double = 0.75
         pltparam.levels (1,:) double = 50
         pltparam.alphadata (1,1) double = 1
         %% ROI parameters
         roiparam.draw {mustBeMember(roiparam.draw, {'none', 'drawpoint', 'drawline', 'drawrectangle', 'drawpolygon', 'drawpolyline'}), ...
             mustBeA(roiparam.draw, {'char', 'cell'})} = 'none'
-        roiparam.position (:,:) double = []
-        roiparam.number (1,:) {mustBeInteger, mustBeGreaterThan(roiparam.number, 0)} = 1
+        roiparam.interaction {mustBeMember(roiparam.interaction, {'all', 'none', 'translate'}), ...
+            mustBeA(roiparam.interaction, {'char', 'cell'})} = 'all'
+        roiparam.position = []
+        roiparam.number (1,:) cell = []
+        roiparam.snap (1,:) logical = []
+        roiparam.label (1,:) cell = []
         %% `legend` parameters
         lgd.legend (1,:) logical = false
         lgd.ltitle (1,:) {mustBeA(lgd.ltitle, {'char', 'string'})} = ''
@@ -53,12 +59,21 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         lgd.displayname (1,:) {mustBeA(lgd.displayname, {'char', 'string', 'cell'})} = {}
         %% `colorbar` parmeters
         clb.colorbar (1,:) logical = false
-        clb.clabel (1,:) char = []
+        clb.clabel {mustBeA(clb.clabel, {'char', 'cell'})} = ''
         clb.corientation {mustBeMember(clb.corientation, {'vertical', 'horizontal'})} = 'vertical'
         clb.clocation (1,:) char {mustBeMember(clb.clocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','bestoutside','layout','none'})} = 'eastoutside'
     end
     arguments (Output, Repeating)
         varargout
+    end
+
+    if isempty(kwargs.dims)
+        switch kwargsplt.plot
+            case 'plot'
+                kwargs.dims = 1;
+            otherwise
+                kwargs.dims = [1, 2];
+        end
     end
 
     % parse data to cell array
@@ -84,21 +99,44 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
 
     % create roi instances
     if isa(roiparam.draw, 'char'); roiparam.draw = {roiparam.draw}; end
-    rois = cell(numel(roiparam.draw), 1);
-    for i = 1:numel(roiparam.draw)
-        switch kwargs.roi
-            case '1-n'
-                ind = 1:numel(plts);
-            case '1-1'
-                ind = 1;
-        end
-        temp = roiparam;
-        temp.draw = temp.draw{i};
-        arg = namedargs2cell(temp);
-        % rois{i} = cellfun(@(j) guiroi(axs{j}, arg{:}, snap = plts{j}), num2cell(ind), UniformOutput = false);
-        rois{i} = cellfun(@(j) guiroi(axs{j}, arg{:}), num2cell(ind), UniformOutput = false);
-    end
+    if isa(roiparam.interaction, 'char'); roiparam.interaction = {roiparam.interaction}; end
+    if isempty(roiparam.snap); roiparam.snap = true(numel(roiparam.draw), 1); end
+    if isempty(roiparam.number); roiparam.number = repmat({ones(1, numel(plts))}, numel(roiparam.draw), 1); end
+    if isempty(roiparam.position); roiparam.position = repmat({cell(1, numel(plts))}, numel(roiparam.draw), 1); end
+
+    assert(isequal(numel(roiparam.draw), numel(roiparam.position)), "`position` must be cell array size like `draw`")
+    assert(isequal(numel(roiparam.draw), numel(roiparam.number)), "`number` must be cell array size like `draw`")
+
+    n = numel(roiparam.draw);
+    m = numel(axs);
+
+    axsa = repelem(axs, n, 1);
+    pltsa = repelem(plts, n, 1);
+    draws = repmat(roiparam.draw', m, 1);
+    number = num2cell([roiparam.number{:}])';
+    position = [roiparam.position{:}]';
+
+    axsa = cellfun(@(x){x}, axsa, UniformOutput = false);
+    pltsa = cellfun(@(x){x}, pltsa, UniformOutput = false);
+    draws = cellfun(@(x){x}, draws, UniformOutput = false);
+    number = cellfun(@(x){x}, number, UniformOutput = false);
+    position = cellfun(@(x){x}, position, UniformOutput = false);
+
+    snaplab = cellfun(@(x){x}, repmat({'snap'}, n*m, 1), UniformOutput = false);
+    drawlab = cellfun(@(x){x}, repmat({'draw'}, n*m, 1), UniformOutput = false);
+    numberlab = cellfun(@(x){x}, repmat({'number'}, n*m, 1), UniformOutput = false);
+    poslab = cellfun(@(x){x}, repmat({'position'}, n*m, 1), UniformOutput = false);
+
+    args = {axsa, snaplab, pltsa, drawlab, ...
+        draws, numberlab, number, poslab, position};
+
+    rois = cellfun(@(arg) guiroi(arg{:}), args{:}, UniformOutput = false);
+
+    rois = cellfun(@(ax, draw, number, snap, pos) guiroi(ax, draw = draw, number = number, snap = snap, position = pos), ...
+        axsa, draws, number, pltsa, position, UniformOutput = false);
     
+    cellfun(@(x)disp(x),args{:})
+
     varargout{1} = rois;
 
 end

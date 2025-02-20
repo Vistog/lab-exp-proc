@@ -10,7 +10,7 @@ function varargout = preddln(network, data)
     T = readall(data.UnderlyingDatastores{2});
     Y = cell(numel(X), 1);
     for i = 1:numel(X)
-        Y{i} = predict(network, X{i});
+        Y{i} = gather(predict(network, X{i}));
     end
 
     wrapper = @(x) squeeze(permute(reshape(cell2mat(x), [size(x{1}, 1), numel(x), size(x{1}, 2:ndims(x{1}))]), [1, (1:ndims(X{1}))+2, 2]));
@@ -19,5 +19,5 @@ function varargout = preddln(network, data)
     varargout = cell(size(temp));
     temp = cellfun(wrapper, temp, UniformOutput = false);
     [varargout{:}] = deal(temp{:});
-    
+
 end
