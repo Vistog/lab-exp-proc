@@ -110,33 +110,54 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
     n = numel(roiparam.draw);
     m = numel(axs);
 
-    axsa = repelem(axs, n, 1);
-    pltsa = repelem(plts, n, 1);
-    draws = repmat(roiparam.draw', m, 1);
-    number = num2cell([roiparam.number{:}])';
-    position = [roiparam.position{:}]';
+    pltsc = plts;
 
-    axsa = cellfun(@(x){x}, axsa, UniformOutput = false);
-    pltsa = cellfun(@(x){x}, pltsa, UniformOutput = false);
-    draws = cellfun(@(x){x}, draws, UniformOutput = false);
-    number = cellfun(@(x){x}, number, UniformOutput = false);
-    position = cellfun(@(x){x}, position, UniformOutput = false);
+    for i = 1:numel(roiparam.snap)
+        if ~roiparam.snap(i); pltsc{i} = []; end
+    end
 
-    snaplab = cellfun(@(x){x}, repmat({'snap'}, n*m, 1), UniformOutput = false);
-    drawlab = cellfun(@(x){x}, repmat({'draw'}, n*m, 1), UniformOutput = false);
-    numberlab = cellfun(@(x){x}, repmat({'number'}, n*m, 1), UniformOutput = false);
-    poslab = cellfun(@(x){x}, repmat({'position'}, n*m, 1), UniformOutput = false);
+    % axsa = repelem(axs, n, 1);
+    % pltsa = repelem(pltsc, n, 1);
+    % draws = repmat(roiparam.draw', m, 1);
+    % number = num2cell([roiparam.number{:}])';
+    % position = [roiparam.position{:}]';
 
-    args = {axsa, snaplab, pltsa, drawlab, ...
-        draws, numberlab, number, poslab, position};
+    axsa = repelem(axs, n, 1)';
+    pltsa = repelem(pltsc, n, 1)';
+    draws = repmat(roiparam.draw', m, 1)';
+    number = num2cell([roiparam.number{:}]);
+    position = [roiparam.position{:}];
 
+
+    % axsa = cellfun(@(x){x}, axsa, UniformOutput = false);
+    % pltsa = cellfun(@(x){x}, pltsa, UniformOutput = false);
+    % draws = cellfun(@(x){x}, draws, UniformOutput = false);
+    % number = cellfun(@(x){x}, number, UniformOutput = false);
+    % position = cellfun(@(x){x}, position, UniformOutput = false);
+    % 
+    % snaplab = cellfun(@(x){x}, repmat({'snap'}, n*m, 1), UniformOutput = false);
+    % drawlab = cellfun(@(x){x}, repmat({'draw'}, n*m, 1), UniformOutput = false);
+    % numberlab = cellfun(@(x){x}, repmat({'number'}, n*m, 1), UniformOutput = false);
+    % poslab = cellfun(@(x){x}, repmat({'position'}, n*m, 1), UniformOutput = false);
+
+    % new
+    % args = {axsa, repmat({'snap'}, 1, n*m), pltsa, repmat({'draw'}, 1, n*m), ...
+    %     draws, repmat({'number'}, 1, n*m), number, repmat({'position'}, 1, n*m), position};
+
+    args = cat(1, axsa, repmat({'snap'}, 1, n*m), pltsa, repmat({'draw'}, 1, n*m), ...
+        draws, repmat({'number'}, 1, n*m), number, repmat({'position'}, 1, n*m), position);
+
+    % args = {axsa, repmat({'snap'}, n*m, 1), pltsa, repmat({'draw'}, n*m, 1), ...
+    %     draws, repmat({'number'}, n*m, 1), number, repmat({'position'}, n*m, 1), position};
+    % args = [args{:}];
+    % 
+    % args = cellfun(@(i) [args{i, :}], num2cell(1:size(args, 1)), UniformOutput = false);
     rois = cellfun(@(arg) guiroi(arg{:}), args{:}, UniformOutput = false);
 
-    rois = cellfun(@(ax, draw, number, snap, pos) guiroi(ax, draw = draw, number = number, snap = snap, position = pos), ...
-        axsa, draws, number, pltsa, position, UniformOutput = false);
-    
-    cellfun(@(x)disp(x),args{:})
-
+    % old
+    % rois = cellfun(@(ax, draw, number, snap, pos) guiroi(ax, draw = draw, number = number, snap = snap, position = pos), ...
+    %     axsa, draws, number, pltsa, position, UniformOutput = false);
+   
     varargout{1} = rois;
 
 end

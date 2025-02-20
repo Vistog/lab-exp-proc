@@ -105,7 +105,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
 
     if ~isa(kwargs.title, 'cell'); kwargs.title = repmat({kwargs.title}, numel(axs), 1); end
     if isrow(kwargs.title); kwargs.title = kwargs.title'; end
-    cellfun(@(ax, label) title(ax, label, 'FontWeight', 'Normal'), axs, kwargs.title)
+    % cellfun(@(ax, label) title(ax, label, 'FontWeight', 'Normal'), axs, kwargs.title)
 
     sgtitle(kwargs.sgtitle)
 

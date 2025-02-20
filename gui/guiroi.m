@@ -7,7 +7,7 @@ function rois = guiroi(axroi, kwargs)
         kwargs.snap (1,:) = []
         kwargs.position = [] % two row vertex to line selection; edge size to rectangle selection; n-row verxex to polygon selection 
         kwargs.interaction (1,:) char {mustBeMember(kwargs.interaction, {'all', 'none', 'translate'})} = 'all' % region selection behaviour
-        kwargs.number {mustBeScalarOrEmpty, mustBeInteger, mustBePositive} = 1 % count of selection regions
+        kwargs.number {mustBeScalarOrEmpty, mustBeInteger} = 1 % count of selection regions
         kwargs.moving (1,:) {mustBeA(kwargs.moving, {'function_handle', 'cell'})} = @(~, ~) [] % callback at moving ROI
         kwargs.moved (1,:) {mustBeA(kwargs.moved, {'function_handle', 'cell'})} = @(~, ~) [] % callback at had moving ROI
         kwargs.StripeColor (1,:) = []
@@ -24,6 +24,7 @@ function rois = guiroi(axroi, kwargs)
 
     % pass
     if kwargs.draw == "none"; return; end
+    if kwargs.number == 0; return; end
 
     colors = colororder(axroi);
 

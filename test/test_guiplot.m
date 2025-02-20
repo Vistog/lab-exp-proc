@@ -83,3 +83,43 @@ guiplot({x1,x2}, {y1,y2}, {z1,z2}, ax = '1-1', ...
     plot = 'contourf', draw = {'drawrectangle'}, aspect = 'image', linestyle = 'none', ...
     roi = '1-1', number = {[3, 1]}, position={{[0.2,0.2,0.1,0.1], [0.6,0.6,0.1,0.1]}},...
     xlabel='x, mm', ylabel={'y1, mm', 'y2, mm'})
+%%
+clc
+args = {{'plot', [1, 2], 'test', [1, 2]}, {'plot', [4, 5], 'test', [1, 2]}};
+% cellfun(@test, args{:})
+test(args{:})
+%%
+
+cellfun(@test, args{:})
+%%
+clc
+args = {{'plot'; 'plot1'}, {[1, 2]; [3, 4]}};
+% args = {{{'plot'}; {'plot1'}}, {[1, 2]; [3, 4]}};
+
+temp = [args{:}];
+temp2 = {};
+
+% for i  = 1:size(temp, 1); temp2{i} = [temp{i,:}]; end
+
+temp2 = cellfun(@(i) [temp{i, :}], num2cell(1:2), UniformOutput = false)
+
+cellfun(@test, temp2{:})
+%%
+clc
+res = cell(1, size(temp, 2));
+[res{:}] = deal(temp{1,:})
+[res{:}] = deal(temp{2,:})
+
+%%
+r = cellfun(@(i) deal(temp{i,:}), num2cell(1:size(temp, 2)))
+%%
+function test(varargin, kwargs)
+    arguments (Repeating)
+        varargin
+    end
+    arguments
+        kwargs.test = []
+    end
+    disp(varargin)
+    disp(kwargs)
+end
