@@ -47,10 +47,10 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
             mustBeA(roiparam.draw, {'char', 'cell'})} = 'none'
         roiparam.interaction {mustBeMember(roiparam.interaction, {'all', 'none', 'translate'}), ...
             mustBeA(roiparam.interaction, {'char', 'cell'})} = 'all'
-        roiparam.position = []
-        roiparam.number (1,:) cell = []
-        roiparam.snap (1,:) logical = []
-        roiparam.label (1,:) cell = []
+        roiparam.position {mustBeA(roiparam.position, {'double', 'cell'})} = []
+        roiparam.number {mustBeA(roiparam.number, {'double', 'cell'})} = []
+        roiparam.snap {mustBeA(roiparam.snap, {'logical', 'cell'})} = true
+        roiparam.label {mustBeA(roiparam.label, {'char', 'cell'})} = ''
         %% `legend` parameters
         lgd.legend (1,:) logical = false
         lgd.ltitle (1,:) {mustBeA(lgd.ltitle, {'char', 'string'})} = ''
@@ -98,66 +98,58 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
     [plts, axs] = plotdatcell(data{:}, arg{:});
 
     % create roi instances
+    
+
+
+
+    %%
     if isa(roiparam.draw, 'char'); roiparam.draw = {roiparam.draw}; end
-    if isa(roiparam.interaction, 'char'); roiparam.interaction = {roiparam.interaction}; end
-    if isempty(roiparam.snap); roiparam.snap = true(numel(roiparam.draw), 1); end
-    if isempty(roiparam.number); roiparam.number = repmat({ones(1, numel(plts))}, numel(roiparam.draw), 1); end
+    if isrow(roiparam.draw); roiparam.draw = roiparam.draw'; end
+    if isa(roiparam.interaction, 'char'); roiparam.interaction = repmat({roiparam.interaction}, numel(roiparam.draw), 1); end
+    if isa(roiparam.snap, 'logical'); roiparam.snap = repmat({true(numel(plts), 1)}, numel(roiparam.draw), 1); end
+    if isrow(roiparam.snap); roiparam.snap = roiparam.snap'; end
+
+
+    if isempty(roiparam.number); roiparam.number = repmat({ones(numel(plts), 1)}, numel(roiparam.draw), 1); end
+    if isrow(roiparam.number); roiparam.number = roiparam.number'; end
+    
     if isempty(roiparam.position); roiparam.position = repmat({cell(1, numel(plts))}, numel(roiparam.draw), 1); end
+    if isa(roiparam.label, 'char'); roiparam.label = repmat({roiparam.label}, numel(roiparam.draw), 1); end
+
+    % if isscalar(roiparam.interaction); roiparam.interaction = repmat(roiparam.interaction, numel(roiparam.draw), 1); end
+    % if isscalar(roiparam.snap); roiparam.snap = repmat(roiparam.snap, numel(roiparam.draw), 1); end
 
     assert(isequal(numel(roiparam.draw), numel(roiparam.position)), "`position` must be cell array size like `draw`")
     assert(isequal(numel(roiparam.draw), numel(roiparam.number)), "`number` must be cell array size like `draw`")
+
+    % pltsa = repelem(plts, numel(roiparam.draw), 1);
+
+    snap = roiparam.snap;
+    roiparam.snap = {};
+
+    for i = 1:numel(snap)
+        for j = 1:numel(snap{i})
+            if snap{i}(j); roiparam.snap{i,1}{j} = plts{j}; else; roiparam.snap{i,1}{j} = []; end
+        end
+    end
+
+
+    roiparam = cellnamedargs2cell(roiparam);
+
 
     n = numel(roiparam.draw);
     m = numel(axs);
 
     pltsc = plts;
 
-    for i = 1:numel(roiparam.snap)
-        if ~roiparam.snap(i); pltsc{i} = []; end
-    end
 
-    % axsa = repelem(axs, n, 1);
-    % pltsa = repelem(pltsc, n, 1);
-    % draws = repmat(roiparam.draw', m, 1);
-    % number = num2cell([roiparam.number{:}])';
-    % position = [roiparam.position{:}]';
+    args = {repelem(axs, n, 1), repmat({'snap'}, n*m, 1), repelem(pltsc, n, 1), ...
+        repmat({'draw'}, n*m, 1), repmat(roiparam.draw', m, 1), ...
+        repmat({'number'}, n*m, 1), num2cell([roiparam.number{:}])', ...
+        repmat({'position'}, n*m, 1), [roiparam.position{:}]'};
 
-    axsa = repelem(axs, n, 1)';
-    pltsa = repelem(pltsc, n, 1)';
-    draws = repmat(roiparam.draw', m, 1)';
-    number = num2cell([roiparam.number{:}]);
-    position = [roiparam.position{:}];
+    rois = cellfun(@(varargin) guiroi(varargin{:}), args{:}, UniformOutput = false);
 
-
-    % axsa = cellfun(@(x){x}, axsa, UniformOutput = false);
-    % pltsa = cellfun(@(x){x}, pltsa, UniformOutput = false);
-    % draws = cellfun(@(x){x}, draws, UniformOutput = false);
-    % number = cellfun(@(x){x}, number, UniformOutput = false);
-    % position = cellfun(@(x){x}, position, UniformOutput = false);
-    % 
-    % snaplab = cellfun(@(x){x}, repmat({'snap'}, n*m, 1), UniformOutput = false);
-    % drawlab = cellfun(@(x){x}, repmat({'draw'}, n*m, 1), UniformOutput = false);
-    % numberlab = cellfun(@(x){x}, repmat({'number'}, n*m, 1), UniformOutput = false);
-    % poslab = cellfun(@(x){x}, repmat({'position'}, n*m, 1), UniformOutput = false);
-
-    % new
-    % args = {axsa, repmat({'snap'}, 1, n*m), pltsa, repmat({'draw'}, 1, n*m), ...
-    %     draws, repmat({'number'}, 1, n*m), number, repmat({'position'}, 1, n*m), position};
-
-    args = cat(1, axsa, repmat({'snap'}, 1, n*m), pltsa, repmat({'draw'}, 1, n*m), ...
-        draws, repmat({'number'}, 1, n*m), number, repmat({'position'}, 1, n*m), position);
-
-    % args = {axsa, repmat({'snap'}, n*m, 1), pltsa, repmat({'draw'}, n*m, 1), ...
-    %     draws, repmat({'number'}, n*m, 1), number, repmat({'position'}, n*m, 1), position};
-    % args = [args{:}];
-    % 
-    % args = cellfun(@(i) [args{i, :}], num2cell(1:size(args, 1)), UniformOutput = false);
-    rois = cellfun(@(arg) guiroi(arg{:}), args{:}, UniformOutput = false);
-
-    % old
-    % rois = cellfun(@(ax, draw, number, snap, pos) guiroi(ax, draw = draw, number = number, snap = snap, position = pos), ...
-    %     axsa, draws, number, pltsa, position, UniformOutput = false);
-   
     varargout{1} = rois;
 
 end
