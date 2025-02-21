@@ -133,15 +133,12 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         end
     end
 
-
-    roiparam = cellnamedargs2cell(roiparam);
-
-
     n = numel(roiparam.draw);
     m = numel(axs);
 
-    pltsc = plts;
+    % roiparam = cellnamedargs2cell(roiparam);
 
+    pltsc = plts;
 
     args = {repelem(axs, n, 1), repmat({'snap'}, n*m, 1), repelem(pltsc, n, 1), ...
         repmat({'draw'}, n*m, 1), repmat(roiparam.draw', m, 1), ...
