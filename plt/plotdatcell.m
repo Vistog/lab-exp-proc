@@ -6,7 +6,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
     end
     arguments (Input)
         kwargs.target (1,1) {mustBeA(kwargs.target, {'matlab.graphics.layout.TiledChartLayout', 'matlab.graphics.axis.Axes'})}
-        kwargs.plot char {mustBeMember(kwargs.plot, {'plot', 'imagesc', 'contour', 'contourf'})} = 'plot'
+        kwargs.plot char {mustBeMember(kwargs.plot, {'plot', 'imagesc', 'contour', 'contourf', 'mesh'})} = 'plot'
         kwargs.title {mustBeA(kwargs.title, {'char', 'string', 'cell'})} = ''
         kwargs.sgtitle (1,:) char = ''
         %% parameters for `set(ax, arg{:})`
@@ -86,6 +86,8 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         case 'imagesc'
             listparam = {'alphadata'};
             varargin = {varargin{nargin}};
+        case 'mesh'
+            listparam = {'linestyle', 'linewidth'};
     end
     pltparamarg = cell2struct(cellfun(@(field) pltparam.(field), listparam, UniformOutput = false), listparam, 2);
     % prepare plot appearance

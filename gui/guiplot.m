@@ -7,7 +7,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         kwargs.dims (1,:) {mustBeInteger, mustBePositive} = []
         kwargs.ax {mustBeMember(kwargs.ax, {'1-1', '1-n'})} = '1-1'
         kwargs.roi {mustBeMember(kwargs.roi, {'1-1', '1-n'})} = '1-1'
-        kwargsplt.plot char {mustBeMember(kwargsplt.plot, {'plot', 'imagesc', 'contour', 'contourf'})} = 'plot'
+        kwargsplt.plot char {mustBeMember(kwargsplt.plot, {'plot', 'imagesc', 'contour', 'contourf', 'mesh'})} = 'plot'
         kwargsplt.title {mustBeA(kwargsplt.title, {'char', 'string', 'cell'})} = ''
         kwargsplt.sgtitle (1,:) char = ''
         figparam.docked (1,1) logical = false
@@ -136,7 +136,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
     n = numel(roiparam.draw);
     m = numel(axs);
 
-    % roiparam = cellnamedargs2cell(roiparam);
+    roiparam = cellnamedargs2cell(roiparam);
 
     pltsc = plts;
 
