@@ -45,12 +45,11 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         %% ROI parameters
         roiparam.draw {mustBeMember(roiparam.draw, {'none', 'drawpoint', 'drawline', 'drawrectangle', 'drawpolygon', 'drawpolyline'}), ...
             mustBeA(roiparam.draw, {'char', 'cell'})} = 'none'
-        roiparam.target (:,1) {mustBeInteger, mustBePositive} = []
+        roiparam.target (1,:) cell = {}
         roiparam.interaction {mustBeMember(roiparam.interaction, {'all', 'none', 'translate'}), ...
             mustBeA(roiparam.interaction, {'char', 'cell'})} = 'all'
-        roiparam.position {mustBeA(roiparam.position, {'double', 'cell'})} = []
-        roiparam.number {mustBeA(roiparam.number, {'double', 'cell'})} = []
-        roiparam.snap {mustBeA(roiparam.snap, {'logical', 'cell'})} = true
+        roiparam.position (1,:) cell = {}
+        roiparam.number (1,:) cell = {}
         roiparam.label {mustBeA(roiparam.label, {'char', 'cell'})} = ''
         %% `legend` parameters
         lgd.legend (1,:) logical = false
@@ -63,6 +62,8 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         clb.clabel {mustBeA(clb.clabel, {'char', 'cell'})} = ''
         clb.corientation {mustBeMember(clb.corientation, {'vertical', 'horizontal'})} = 'vertical'
         clb.clocation (1,:) char {mustBeMember(clb.clocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','bestoutside','layout','none'})} = 'eastoutside'
+        clb.cExponent (1,:) double = []
+        clb.cTickLabelFormat (1,:) char = '%0.1f'
     end
     arguments (Output, Repeating)
         varargout
@@ -99,59 +100,34 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
     [plts, axs] = plotdatcell(data{:}, arg{:});
 
     % create roi instances
+    if roiparam.draw ~= "none"
+
+        if isempty(roiparam.target); roiparam.target = {1}; end
+        if isempty(roiparam.number); roiparam.number = {1}; end
+        if isempty(roiparam.position); roiparam.position = {[]}; end
+        
+        if isa(roiparam.interaction, 'char'); roiparam.interaction = {roiparam.interaction}; end
+        if isa(roiparam.label, 'char'); roiparam.label = {roiparam.label}; end
     
-    % if isa(roiparam.draw, 'char'); roiparam.draw = {roiparam.draw}; end
-    % if isrow(roiparam.draw); roiparam.draw = roiparam.draw'; end
-    % if isa(roiparam.interaction, 'char'); roiparam.interaction = repmat({roiparam.interaction}, numel(roiparam.draw), 1); end
-    % if isa(roiparam.snap, 'logical'); roiparam.snap = repmat({true(numel(plts), 1)}, numel(roiparam.draw), 1); end
-    if isrow(roiparam.snap); roiparam.snap = roiparam.snap'; end
-
-
-    % if isempty(roiparam.number); roiparam.number = repmat({ones(numel(plts), 1)}, numel(roiparam.draw), 1); end
-    % if isrow(roiparam.number); roiparam.number = roiparam.number'; end
-    % roiparam.number = num2cell([roiparam.number{:}]);
+        if isscalar(roiparam.target); roiparam.target = repelem(roiparam.target, 1, numel(roiparam.draw)); end
+        if isscalar(roiparam.number); roiparam.number = repelem(roiparam.number, 1, numel(roiparam.draw)); end
+        if isscalar(roiparam.position); roiparam.position = repelem(roiparam.position, 1, numel(roiparam.draw)); end
+        if isscalar(roiparam.interaction); roiparam.interaction = repelem(roiparam.interaction, 1, numel(roiparam.draw)); end
+        if isscalar(roiparam.label); roiparam.label = repelem(roiparam.label, 1, numel(roiparam.draw)); end
     
-    % if isempty(roiparam.position); roiparam.position = repmat({cell(1, numel(plts))}, numel(roiparam.draw), 1); end
-    % if isa(roiparam.label, 'char'); roiparam.label = repmat({roiparam.label}, numel(roiparam.draw), 1); end
-
-    % if isscalar(roiparam.interaction); roiparam.interaction = repmat(roiparam.interaction, numel(roiparam.draw), 1); end
-    % if isscalar(roiparam.snap); roiparam.snap = repmat(roiparam.snap, numel(roiparam.draw), 1); end
-
-    % assert(isequal(numel(roiparam.draw), numel(roiparam.position)), "`position` must be cell array size like `draw`")
-    % assert(isequal(numel(roiparam.draw), numel(roiparam.number)), "`number` must be cell array size like `draw`")
-
-    % pltsa = repelem(plts, numel(roiparam.draw), 1);
-
-    snap = roiparam.snap;
-    % roiparam.snap = {};
-
-    axrois = {};
-
-    for i = 1:numel(snap)
-        for j = 1:numel(snap{i})
-            if snap{i}(j); axrois{i}{j} = plts{j}; else; axrois{i}{j} = axs{j}; end
+        target = cell(1, numel(roiparam.target));
+    
+        for i = 1:numel(roiparam.target)
+            if isempty(roiparam.target{i}); target{i} = axs{i}; else; target{i} = plts{roiparam.target{i}}; end
         end
+        roiparam = rmfield(roiparam, 'target');
+    
+        args = permnamedargs(target, roiparam, block = cat(1, 1, fieldnames(roiparam)));
+    
+        rois = cellfun(@(arg) guiroi(arg{:}), args, UniformOutput = false);
+    
+        varargout{1} = rois;
+
     end
-
-    axrois = [axrois{:}];
-    roiparam = rmfield(roiparam, 'snap');
-
-    % n = numel(roiparam.draw);
-    % m = numel(axs);
-    % 
-    % roiparam = cellnamedargs2cell(roiparam);
-    % 
-    % pltsc = plts;
-    % 
-    % args = {repelem(axs, n, 1), repmat({'snap'}, n*m, 1), repelem(pltsc, n, 1), ...
-    %     repmat({'draw'}, n*m, 1), repmat(roiparam.draw', m, 1), ...
-    %     repmat({'number'}, n*m, 1), num2cell([roiparam.number{:}])', ...
-    %     repmat({'position'}, n*m, 1), [roiparam.position{:}]'};
-
-    args = permnamedargs(axrois, roiparam, block = {'number'});
-
-    rois = cellfun(@(arg) guiroi(arg{:}), args, UniformOutput = false);
-
-    varargout{1} = rois;
 
 end

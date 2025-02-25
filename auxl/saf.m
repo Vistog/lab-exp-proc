@@ -5,15 +5,12 @@ function saf(path, kwargs, options)
         kwargs.resolution (1,1) = 300
         kwargs.extension (1,:) char = '.png'
         kwargs.obsidian {mustBeTextScalar}  = ""
+        kwargs.units {mustBeMember(kwargs.units, {'pixels', 'normalized', 'inches', 'centimeters', 'points', 'characters'})} = 'centimeters'
+        kwargs.size (1,:) double = [] 
         options.?matlab.ui.Figure
     end
     
-    if ~isempty(path)
-        try
-            mkdir(path)
-        catch
-        end
-    end
+    if ~isempty(path); try mkdir(path); catch; end; end
 
     if isfile(path)
         folder = fileparts(path);

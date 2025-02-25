@@ -71,7 +71,7 @@ function r = permnamedargs(varargin, param)
     end
 
     % stack
-    if ~isempty(named) & ~isscalar(varargin)
+    if ~isempty(named) & ~isscalar(varargin) & isempty(r1) & isempty(r2)
         r3 = repelem(shiftdim(r2', -1), size(r1, 1), 1, 1);
         r4 = repelem(r1, 1, 1, size(r3, 3));
         r5 = [r3,r4];

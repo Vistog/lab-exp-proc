@@ -50,6 +50,8 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         clb.clabel {mustBeA(clb.clabel, {'char', 'cell'})} = ''
         clb.corientation {mustBeMember(clb.corientation, {'vertical', 'horizontal'})} = 'vertical'
         clb.clocation (1,:) char {mustBeMember(clb.clocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','bestoutside','layout','none'})} = 'eastoutside'
+        clb.cExponent (1,:) double = []
+        clb.cTickLabelFormat (1,:) char = '%0.1f'
     end
     arguments (Output, Repeating)
         varargout
@@ -107,7 +109,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
 
     if ~isa(kwargs.title, 'cell'); kwargs.title = repmat({kwargs.title}, numel(axs), 1); end
     if isrow(kwargs.title); kwargs.title = kwargs.title'; end
-    % cellfun(@(ax, label) title(ax, label, 'FontWeight', 'Normal'), axs, kwargs.title)
+    cellfun(@(ax, label) title(ax, label, 'FontWeight', 'Normal'), axs, kwargs.title)
 
     sgtitle(kwargs.sgtitle)
 
@@ -163,10 +165,16 @@ function setColorbar(ax, clb)
         clb.clabel (1,:) char = []
         clb.corientation {mustBeMember(clb.corientation, {'vertical', 'horizontal'})} = 'vertical'
         clb.clocation (1,:) char {mustBeMember(clb.clocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','bestoutside','layout','none'})} = 'eastoutside'
+        clb.cExponent (1,:) double = []
+        clb.cTickLabelFormat (1,:) char = '%0.1f'
     end
     
     if clb.colorbar
         c = colorbar(ax, location = clb.clocation, orientation = clb.corientation);
+        if ~isempty(clb.cExponent)
+            c.Ruler.Exponent = clb.cExponent;
+            c.Ruler.TickLabelFormat = clb.cTickLabelFormat;  
+        end
         ylabel(c, clb.clabel)
     end
 end

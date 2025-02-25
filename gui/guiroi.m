@@ -1,10 +1,9 @@
-function rois = guiroi(axroi, kwargs)
+function rois = guiroi(target, kwargs)
     %% Interactive data selection.
 
     arguments (Input)
-        axroi
+        target
         kwargs.draw {mustBeMember(kwargs.draw, {'none', 'drawpoint', 'drawline', 'drawrectangle', 'drawpolygon', 'drawpolyline', 'drawcuboid'})} = 'drawpoint' % type of region selection
-        kwargs.snap (1,:) = []
         kwargs.position = [] % two row vertex to line selection; edge size to rectangle selection; n-row verxex to polygon selection 
         kwargs.interaction (1,:) char {mustBeMember(kwargs.interaction, {'all', 'none', 'translate'})} = 'all' % region selection behaviour
         kwargs.number (1,:) {mustBeInteger, mustBePositive} = 1 % count of selection regions
@@ -26,12 +25,14 @@ function rois = guiroi(axroi, kwargs)
     if kwargs.draw == "none"; return; end
     if kwargs.number == 0; return; end
 
-    if ~isa(axroi, 'matlab.graphics.axis.Axes')
-        kwargs.snap = axroi;
-        axroi = axroi.Parent;
+    if ~isa(target, 'matlab.graphics.axis.Axes')
+        snap = target;
+        target = target.Parent;
+    else
+        snap = [];
     end
 
-    colors = colororder(axroi);
+    colors = colororder(target);
 
     if isempty(kwargs.number); kwargs.number = 1; end
 
@@ -39,24 +40,27 @@ function rois = guiroi(axroi, kwargs)
     roimethod = str2func(kwargs.draw);
 
     % snap to plot
-    switch class(kwargs.snap)
+    switch class(snap)
         case 'matlab.graphics.chart.primitive.Line'
-            snapfunc = @(src) snap(src, [kwargs.snap.XData; kwargs.snap.YData]');
+            snapfunc = @(src) snaphandler(src, [snap.XData; snap.YData]');
         case 'matlab.graphics.primitive.Image'
-            sz = flip(size(kwargs.snap.CData));
+            sz = flip(size(snap.CData));
             points = cell(1, numel(sz));
             sz = cellfun(@(x) 1:x, num2cell(sz, 1), UniformOutput = false);
             [points{:}] = ndgrid(sz{:});
             points = cellfun(@(x) x(:), points, UniformOutput = false);
             points = cell2mat(points);
-            snapfunc = @(src) snap(src, points, sz = size(kwargs.snap.CData));
+            snapfunc = @(src) snaphandler(src, points, sz = size(snap.CData));
         case 'matlab.graphics.chart.primitive.Contour'
-            snapfunc = @(src) snap(src, [kwargs.snap.XData(:), kwargs.snap.YData(:)], sz = size(kwargs.snap.XData));
+            snapfunc = @(src) snaphandler(src, [snap.XData(:), snap.YData(:)], sz = size(snap.XData));
         otherwise
             snapfunc = @(x) [];
     end
 
-    if isa(kwargs.position, 'double'); kwargs.position = repmat({kwargs.position}, 1, kwargs.number); end
+    if isa(kwargs.position, 'double'); kwargs.position = {kwargs.position}; end
+    if isscalar(kwargs.position); kwargs.position = repmat(kwargs.position, 1, kwargs.number); end
+
+    % if isa(kwargs.position, 'double'); kwargs.position = repmat({kwargs.position}, 1, kwargs.number); end
     if isa(kwargs.label, 'char'); kwargs.label = repmat({kwargs.label}, 1, kwargs.number); end
     if isa(kwargs.tag, 'char'); kwargs.tag = repmat({kwargs.tag}, 1, kwargs.number); end
     if isa(kwargs.moving, 'function_handle'); kwargs.moving = repmat({kwargs.moving}, 1, kwargs.number); end
@@ -67,7 +71,7 @@ function rois = guiroi(axroi, kwargs)
     for i = 1:kwargs.number
         % assembly arguments
         if size(colors, 1) > 1; color = circshift(colors, 1-i); color = color(1,:); else; color = colors(1,:); end
-        arg = {axroi, 'InteractionsAllowed', kwargs.interaction, 'Color', color};
+        arg = {target, 'InteractionsAllowed', kwargs.interaction, 'Color', color};
         if ~isempty(kwargs.StripeColor); arg = cat(2, arg, {'StripeColor'}, {kwargs.StripeColor}); end
         if ~isempty(kwargs.position{i}); arg = cat(2, arg, {'Position'}, {kwargs.position{i}}); end
         if ~isempty(kwargs.label{i}); arg = cat(2, arg, {'Label'}, {kwargs.label{i}}, {'LabelAlpha'}, {kwargs.aplha(i)}); end
@@ -86,7 +90,7 @@ function rois = guiroi(axroi, kwargs)
     
 end
 
-function snap(src, pos, kwargs)
+function snaphandler(src, pos, kwargs)
     arguments
         src
         pos
