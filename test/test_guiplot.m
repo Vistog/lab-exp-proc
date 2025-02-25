@@ -66,22 +66,31 @@ z2 = sin(10*x2-5*y2);
 guiplot({x1,x2}, {y1,y2}, {z1,z2}, ax = '1-n', ...
     plot = 'contourf', draw = {'drawpolygon', 'drawrectangle', 'drawpoint'}, aspect = 'image', linestyle = 'none', ...
     roi = '1-1', number = {[1, 1], [1, 1], [1, 1]})
-%% 2D data, 2D plot, single tile, merge contourf, drawpolygon, snap on, position
+%% 2D data, 2D plot, single tile, merge contourf, drawpolygon, snap on, position on
 [x1, y1] = meshgrid(linspace(0, 1, 10));
 z1 = sin(10*x1-5*y1);
 [x2, y2] = meshgrid(linspace(0.5, 1.5, 10));
 z2 = sin(10*x2-5*y2);
 guiplot({x1,x2}, {y1,y2}, {z1,z2}, ax = '1-n', ...
     plot = 'contourf', draw = {'drawrectangle'}, aspect = 'image', linestyle = 'none', ...
-    roi = '1-1', number = {[3, 1]}, position={{[0.2,0.2,0.1,0.1], [0.6,0.6,0.1,0.1]}})
-%% 2D data, 2D plot, single tile, merge contourf, drawpolygon, snap on, position
+    roi = '1-1', number = {2, 1}, position={{[0.2,0.2,0.1,0.1], [0.6,0.6,0.1,0.1]}})
+%% 2D data, 2D plot, single tile, merge contourf, drawpolygon, snap on, position on
 [x1, y1] = meshgrid(linspace(0, 1, 10));
 z1 = sin(10*x1-5*y1);
 [x2, y2] = meshgrid(linspace(0.5, 1.5, 10));
 z2 = sin(10*x2-5*y2);
 guiplot({x1,x2}, {y1,y2}, {z1,z2}, ax = '1-1', ...
     plot = 'contourf', draw = {'drawrectangle'}, aspect = 'image', linestyle = 'none', ...
-    roi = '1-1', number = {[3, 1]}, position={{[0.2,0.2,0.1,0.1], [0.6,0.6,0.1,0.1]}},...
+    roi = '1-1', number = {2, 1}, position={{[0.2,0.2,0.1,0.1], [0.6,0.6,0.1,0.1]}},...
+    xlabel='x, mm', ylabel={'y1, mm', 'y2, mm'})
+%% 2D data, 2D plot, single tile, merge contourf, drawpolygon, snap on, position off
+[x1, y1] = meshgrid(linspace(0, 1, 10));
+z1 = sin(10*x1-5*y1);
+[x2, y2] = meshgrid(linspace(0.5, 1.5, 10));
+z2 = sin(10*x2-5*y2);
+guiplot({x1,x2}, {y1,y2}, {z1,z2}, ax = '1-1', ...
+    plot = 'contourf', draw = {'drawrectangle'}, aspect = 'image', linestyle = 'none', ...
+    roi = '1-1', number = {}, position={},...
     xlabel='x, mm', ylabel={'y1, mm', 'y2, mm'})
 %% test combine permutation of cells array
 clc
@@ -137,24 +146,44 @@ test2(s)
 %% test
 clc
 s = {};
-s.draw = {'drawpolygon', 'drawrectangle'};
-s.plot = {'plot-1', 'plot-2'};
+s.draw = {'drawpolygon', 'drawrectangle','drawpoint'};
+s.plot = {'plot-1', 'plot-2','plot-3'};
 s.position = {{rand(2,4), rand(2,4)}, {rand(2,4), rand(2,4)}, {rand(2,4), rand(2,4)}};
 
 % test2({[1, 2], [3, 4], [5, 4]}, {'test1'}, s, block = {'draw', 'plot'})
 %%
 clc
 s = struct;
-s.draw = {'drawpolygon', 'drawrectangle'};
+s.draw = {'drawpolygon', 'drawrectangle','test3'};
 cellnamedargs2cell({[1, 2], [3, 4]}, s, block = {1, 'draw'})
-cellnamedargs2cell({[1, 2], [3, 4]}, s, block = {'draw'})
-cellnamedargs2cell({[1, 2], [3, 4]}, s)
+cellnamedargs2cell({[1, 2], [3, 4], [5, 6], [7, 8]}, s, block = {'draw'})
 %%
 clc
-cellnamedargs2cell({[1, 2]}, s, block = {1})
+cellnamedargs2cell2({[1, 2], [3, 4], [5, 6], [7, 8]}, {'a', 'b'}, s, block = {2})
 %%
-% draw draw1 var1 val1
-% draw draw2 var1 val1
+clc
+cellnamedargs2cell2({[1, 2], [3, 4], [5, 6]}, s)
+%%
+clc
+cellnamedargs2cell2({[1, 2], [3, 4]}, s, block = {1})
+%%
+clc
+cellnamedargs2cell2({[1, 2], [3, 4], [5, 6]}, s, block = {'draw'})
+%%
+clc
+cellnamedargs2cell2({[1, 2], [3, 4], [5, 6], [7, 8]}, s, block = {'draw', 'plot', 'position'})
+%%
+clc
+cellnamedargs2cell2({[1, 2], [3, 4], [5, 6]}, s)
+%%
+clc
+s = struct;
+s.draw = {'test1', 'test2'};
+s.label = '';
+s.position = [0, 1, 2, 3];
+a = permnamedargs(s)
+a{1}
+a{2}
 %%
 function r = test(varargin)
     arguments (Input, Repeating)

@@ -2,12 +2,12 @@ function rois = guiroi(axroi, kwargs)
     %% Interactive data selection.
 
     arguments (Input)
-        axroi matlab.graphics.axis.Axes % axis object of canvas that selection data events are being occured
+        axroi
         kwargs.draw {mustBeMember(kwargs.draw, {'none', 'drawpoint', 'drawline', 'drawrectangle', 'drawpolygon', 'drawpolyline', 'drawcuboid'})} = 'drawpoint' % type of region selection
         kwargs.snap (1,:) = []
         kwargs.position = [] % two row vertex to line selection; edge size to rectangle selection; n-row verxex to polygon selection 
         kwargs.interaction (1,:) char {mustBeMember(kwargs.interaction, {'all', 'none', 'translate'})} = 'all' % region selection behaviour
-        kwargs.number {mustBeScalarOrEmpty, mustBeInteger} = 1 % count of selection regions
+        kwargs.number (1,:) {mustBeInteger, mustBePositive} = 1 % count of selection regions
         kwargs.moving (1,:) {mustBeA(kwargs.moving, {'function_handle', 'cell'})} = @(~, ~) [] % callback at moving ROI
         kwargs.moved (1,:) {mustBeA(kwargs.moved, {'function_handle', 'cell'})} = @(~, ~) [] % callback at had moving ROI
         kwargs.StripeColor (1,:) = []
@@ -26,7 +26,14 @@ function rois = guiroi(axroi, kwargs)
     if kwargs.draw == "none"; return; end
     if kwargs.number == 0; return; end
 
+    if ~isa(axroi, 'matlab.graphics.axis.Axes')
+        kwargs.snap = axroi;
+        axroi = axroi.Parent;
+    end
+
     colors = colororder(axroi);
+
+    if isempty(kwargs.number); kwargs.number = 1; end
 
     % transform method to handle
     roimethod = str2func(kwargs.draw);
