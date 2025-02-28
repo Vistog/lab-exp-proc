@@ -1,5 +1,5 @@
 function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, axparamfunc, axparamaxis, ...
-    pltparam, roiparam, lgd, clb)
+    pltparam, roiparam, lgd, clb, inter)
     arguments (Input, Repeating)
         varargin {mustBeA(varargin, {'numeric', 'cell'})}
     end
@@ -64,6 +64,12 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         clb.clocation (1,:) char {mustBeMember(clb.clocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','bestoutside','layout','none'})} = 'eastoutside'
         clb.cExponent (1,:) double = []
         clb.cTickLabelFormat (1,:) char = '%0.1f'
+        clb.cfontsize (1,:) = []
+        clb.cinterpreter {mustBeMember(clb.cinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        %% text interpreter
+        inter.xinterpreter {mustBeMember(inter.xinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        inter.yinterpreter {mustBeMember(inter.yinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        inter.zinterpreter {mustBeMember(inter.zinterpreter, {'latex', 'tex', 'none'})} = 'tex'
     end
     arguments (Output, Repeating)
         varargout
@@ -93,7 +99,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
     end
 
     % prepare and combine named argumetns for axis appeariance
-    temp = cellfun(@namedargs2cell, {kwargsplt, axparamset, axparamfunc, axparamaxis, pltparam, lgd, clb}, UniformOutput = false);
+    temp = cellfun(@namedargs2cell, {kwargsplt, axparamset, axparamfunc, axparamaxis, pltparam, lgd, clb, inter}, UniformOutput = false);
     arg = {}; for i = 1:numel(temp); arg = cat(2, arg, temp{i}); end
 
     % plot data

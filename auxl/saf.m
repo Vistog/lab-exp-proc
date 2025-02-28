@@ -25,11 +25,15 @@ function saf(path, kwargs, options)
         fighandle = figlist(iFig);
         figname = strrep(string(datetime), ':', '-');
         filename = fullfile(folder, figname);
+        pause(1)
         
-        set(fighandle, WindowStyle = 'normal')
-        pause(2)
-        set(fighandle, options{:});
-        
+        if ~isempty(kwargs.size)
+            set(fighandle, WindowStyle = 'normal')
+            pause(2)
+            % set(fighandle, options{:});
+            set(fighandle, Units = kwargs.units, Position = [0, 0, kwargs.size]);
+        end
+
         exportgraphics(fighandle, strcat(filename, kwargs.extension), Resolution = kwargs.resolution)
         savefig(fighandle, strcat(filename, '.fig'));
 

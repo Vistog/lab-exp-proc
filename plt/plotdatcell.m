@@ -1,4 +1,4 @@
-function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axparamaxis, pltparam, lgd, clb)
+function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axparamaxis, pltparam, lgd, clb, inter)
     %% Plot cell array data and customize axis appeariance.
 
     arguments (Input, Repeating)
@@ -52,10 +52,18 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         clb.clocation (1,:) char {mustBeMember(clb.clocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','bestoutside','layout','none'})} = 'eastoutside'
         clb.cExponent (1,:) double = []
         clb.cTickLabelFormat (1,:) char = '%0.1f'
+        clb.cfontsize (1,:) = []
+        clb.cinterpreter {mustBeMember(clb.cinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        %% text interpreter
+        inter.xinterpreter {mustBeMember(inter.xinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        inter.yinterpreter {mustBeMember(inter.yinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        inter.zinterpreter {mustBeMember(inter.zinterpreter, {'latex', 'tex', 'none'})} = 'tex'
     end
     arguments (Output, Repeating)
         varargout
     end
+
+    if isempty(clb.cfontsize); clb.cfontsize = axparamset.fontsize; end
 
     % prepare axis parameters for @set
     axparamset = namedargs2cell(axparamset);
@@ -121,6 +129,11 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
     clbaparam = repmat({namedargs2cell(clb)}, numel(axs), 1);
     cellfun(@(ax, arg) setColorbar(ax, arg{:}), axs, clbaparam)
 
+    % set text interpreter
+    cellfun(@(ax) set(ax.XLabel, Interpreter = inter.xinterpreter), axs);
+    cellfun(@(ax) set(ax.YLabel, Interpreter = inter.yinterpreter), axs);
+    cellfun(@(ax) set(ax.ZLabel, Interpreter = inter.zinterpreter), axs);
+
     varargout{1} = plts;
     varargout{2} = axs;
 
@@ -167,6 +180,8 @@ function setColorbar(ax, clb)
         clb.clocation (1,:) char {mustBeMember(clb.clocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','bestoutside','layout','none'})} = 'eastoutside'
         clb.cExponent (1,:) double = []
         clb.cTickLabelFormat (1,:) char = '%0.1f'
+        clb.cfontsize (1,:) = []
+        clb.cinterpreter {mustBeMember(clb.cinterpreter, {'latex', 'tex', 'none'})} = 'tex'
     end
     
     if clb.colorbar
@@ -175,6 +190,6 @@ function setColorbar(ax, clb)
             c.Ruler.Exponent = clb.cExponent;
             c.Ruler.TickLabelFormat = clb.cTickLabelFormat;  
         end
-        ylabel(c, clb.clabel)
+        ylabel(c, clb.clabel, Interpreter = clb.cinterpreter, FontSize = clb.cfontsize)
     end
 end
