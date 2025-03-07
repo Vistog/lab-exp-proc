@@ -57,6 +57,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         lgd.lorientation {mustBeMember(lgd.lorientation, {'vertical', 'horizontal'})} = 'vertical'
         lgd.llocation (1,:) char {mustBeMember(lgd.llocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','best','bestoutside','layout','none'})} = 'best'
         lgd.displayname (1,:) {mustBeA(lgd.displayname, {'char', 'string', 'cell'})} = {}
+        lgd.linterpreter {mustBeMember(lgd.linterpreter, {'latex', 'tex', 'none'})} = 'tex'
         %% `colorbar` parmeters
         clb.colorbar (1,:) logical = false
         clb.clabel {mustBeA(clb.clabel, {'char', 'cell'})} = ''
@@ -70,6 +71,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         inter.xinterpreter {mustBeMember(inter.xinterpreter, {'latex', 'tex', 'none'})} = 'tex'
         inter.yinterpreter {mustBeMember(inter.yinterpreter, {'latex', 'tex', 'none'})} = 'tex'
         inter.zinterpreter {mustBeMember(inter.zinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        inter.tinterpreter {mustBeMember(inter.tinterpreter, {'latex', 'tex', 'none'})} = 'tex'
     end
     arguments (Output, Repeating)
         varargout

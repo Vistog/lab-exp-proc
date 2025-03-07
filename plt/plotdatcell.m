@@ -45,6 +45,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         lgd.lorientation {mustBeMember(lgd.lorientation, {'vertical', 'horizontal'})} = 'vertical'
         lgd.llocation (1,:) char {mustBeMember(lgd.llocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','best','bestoutside','layout','none'})} = 'best'
         lgd.displayname (1,:) {mustBeA(lgd.displayname, {'char', 'string', 'cell'})} = {}
+        lgd.linterpreter {mustBeMember(lgd.linterpreter, {'latex', 'tex', 'none'})} = 'tex'
         %% `colorbar` parmeters
         clb.colorbar (1,:) logical = false
         clb.clabel {mustBeA(clb.clabel, {'char', 'cell'})} = ''
@@ -58,6 +59,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         inter.xinterpreter {mustBeMember(inter.xinterpreter, {'latex', 'tex', 'none'})} = 'tex'
         inter.yinterpreter {mustBeMember(inter.yinterpreter, {'latex', 'tex', 'none'})} = 'tex'
         inter.zinterpreter {mustBeMember(inter.zinterpreter, {'latex', 'tex', 'none'})} = 'tex'
+        inter.tinterpreter {mustBeMember(inter.tinterpreter, {'latex', 'tex', 'none'})} = 'tex'
     end
     arguments (Output, Repeating)
         varargout
@@ -117,7 +119,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
 
     if ~isa(kwargs.title, 'cell'); kwargs.title = repmat({kwargs.title}, numel(axs), 1); end
     if isrow(kwargs.title); kwargs.title = kwargs.title'; end
-    cellfun(@(ax, label) title(ax, label, 'FontWeight', 'Normal'), axs, kwargs.title)
+    cellfun(@(ax, label) title(ax, label, 'FontWeight', 'Normal', 'Interpreter', inter.tinterpreter), axs, kwargs.title)
 
     sgtitle(kwargs.sgtitle)
 
@@ -164,10 +166,11 @@ function setLegend(ax, lgd)
         lgd.lorientation {mustBeMember(lgd.lorientation, {'vertical', 'horizontal'})} = 'vertical'
         lgd.llocation (1,:) char {mustBeMember(lgd.llocation, {'north','south','east','west','northeast','northwest','southeast','southwest','northoutside','southoutside','eastoutside','westoutside','northeastoutside','northwestoutside','southeastoutside','southwestoutside','best','bestoutside','layout','none'})} = 'best'
         lgd.displayname (1,:) {mustBeA(lgd.displayname, {'char', 'string', 'cell'})} = {}
+        lgd.linterpreter {mustBeMember(lgd.linterpreter, {'latex', 'tex', 'none'})} = 'tex'
     end
     if lgd.legend
-        l = legend(ax, lgd.displayname, Location = lgd.llocation, Orientation = lgd.lorientation); 
-        title(l, lgd.ltitle, FontWeight = 'normal')
+        l = legend(ax, lgd.displayname, Location = lgd.llocation, Orientation = lgd.lorientation, Interpreter = lgd.linterpreter); 
+        title(l, lgd.ltitle, FontWeight = 'normal', Interpreter = lgd.linterpreter)
     end
 end
 
@@ -190,6 +193,6 @@ function setColorbar(ax, clb)
             c.Ruler.Exponent = clb.cExponent;
             c.Ruler.TickLabelFormat = clb.cTickLabelFormat;  
         end
-        ylabel(c, clb.clabel, Interpreter = clb.cinterpreter, FontSize = clb.cfontsize)
+        set(c.Label, String = clb.clabel, Interpreter = clb.cinterpreter, FontSize = clb.cfontsize)
     end
 end

@@ -21,6 +21,7 @@ function animrec(kwargs)
         kwargs.xlabel (1,:) char = [] % x-axis label
         kwargs.ylabel (1,:) char = [] % y-axis label
         kwargs.aspect (1,:) {mustBeA(kwargs.aspect, {'char', 'cell'}), mustBeMember(kwargs.aspect, {'equal', 'auto', 'manual', 'image', 'square'})} = 'image' % axis ratio
+        kwargs.pbaspect (1,:) = [1, 1, 1]
         kwargs.fontsize (1,1) double = 14
         kwargs.xlim (:,:) {mustBeA(kwargs.xlim, {'double', 'cell'})} = [] % x-axis limit
         kwargs.ylim (:,:) {mustBeA(kwargs.ylim, {'double', 'cell'})} = [] % y-axis limit
@@ -33,7 +34,7 @@ function animrec(kwargs)
     end
 
     function plotfunc(ax, index)
-        cla(ax); set(ax, 'FontSize', kwargs.fontsize);
+        cla(ax); set(ax, 'FontSize', kwargs.fontsize); pbaspect(kwargs.pbaspect);
         if display
             imagesc(ax, kwargs.data(:,:,index));
             if display_label
