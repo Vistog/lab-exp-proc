@@ -3,7 +3,6 @@ function r = permnamedargs(varargin, param)
         varargin 
     end
     arguments
-
         param.block (1,:) cell = {}
     end
 

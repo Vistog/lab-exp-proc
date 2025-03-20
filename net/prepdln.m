@@ -13,7 +13,7 @@ function varargout = prepdln(varargin, dskwargs, kwargs)
         kwargs.suffle (1,1) logical = true
         kwargs.partition (1,:) cell = {}
         kwargs.transform (1,:) cell = {}
-
+        kwargs.augment (1,:) = []
         kwargs.inputDataFormats (1,:) char = ''
         kwargs.targetDataFormats (1,:) char = ''
     end
@@ -56,6 +56,7 @@ function varargout = prepdln(varargin, dskwargs, kwargs)
     end
 
     if isscalar(varargin); totalDataStore = varargin{1}; else; totalDataStore = combine(varargin{:}); end
+    if ~isempty(kwargs.augment); totalDataStore = transform(totalDataStore, @(x) augment(kwargs.augment, x)); end
     if kwargs.suffle; totalDataStore = shuffle(totalDataStore); end
 
     % create data partitions

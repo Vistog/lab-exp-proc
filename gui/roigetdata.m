@@ -24,27 +24,38 @@ function varargout = roigetdata(roi, varargin, kwargs)
     data = cell(numel(kwargs.dims) + 1, 1);
     [data{:}] = splitdatcell(varargin{:}, dims = kwargs.dims);
 
-
-    sz = size(data{end}{1});
-
     for i = 1:numel(data)
-    
-        switch class(roi)
-            case 'images.roi.Point'
-                
-            case 'images.roi.Line'
-    
-            case 'images.roi.Polyline'
-    
-            case 'images.roi.Rectangle'
-                for j = 1:numel(roi.UserData.subind)
-                    [xmin, xmax] = bounds(roi.UserData.subind{j});
-                    roi.UserData.subind{j} = xmin:xmax;
-                end
-            case 'images.roi.Polygon'
-                
-        end
-
+        tf = inpolygon(data{1}{i}(:),data{2}{i}(:),roi.Position(:,1),roi.Position(:,2));
+        data{3}{i}(~tf) = nan;
     end
+
+
+    try
+        temp = cell2arr(data{3});
+    catch
+        temp = data{3};
+    end
+
+    varargout{1} = temp;
+
+    % for i = 1:numel(data)
+    % 
+    %     switch class(roi)
+    %         case 'images.roi.Point'
+    % 
+    %         case 'images.roi.Line'
+    % 
+    %         case 'images.roi.Polyline'
+    % 
+    %         case 'images.roi.Rectangle'
+    %             for j = 1:numel(roi.UserData.subind)
+    %                 [xmin, xmax] = bounds(roi.UserData.subind{j});
+    %                 roi.UserData.subind{j} = xmin:xmax;
+    %             end
+    %         case 'images.roi.Polygon'
+    % 
+    %     end
+    % 
+    % end
 
 end
