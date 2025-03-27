@@ -50,25 +50,33 @@ function obs_paster(filename, imagename, param)
     arguments
         filename {mustBeFile}
         imagename {mustBeTextScalar}
-        param.size {mustBeInteger, mustBeInRange(param.size, 1, 1000)} = 500
-        param.pattern {mustBeTextScalar} = '%%plt%%'
+        param.size (1,:) {mustBeInteger, mustBeInRange(param.size, 1, 1000)} = 400
+        param.pattern {mustBeTextScalar} = '%%'
         param.extenstion {mustBeTextScalar} = ".md"
     end
 
     [~, ~, extenstion] = fileparts(filename);
     if param.extenstion ~= extenstion; return; end
 
+    [~, name] = fileparts(imagename);
+
     if isempty(param.size)
-        imagename = strcat("![[",imagename,"]]");
+        imagename = strcat("![[",imagename,"]]"," ![[",name,".fig]]");
     else
-        imagename = strcat("![[",imagename,"|", num2str(param.size), "]]");
+        imagename = strcat("![[",imagename,"\|", num2str(param.size), "]]"," ![[",name,".fig]]");
     end
     text = string(fileread(filename));
     
     tf = contains(text, param.pattern);
     
     if tf
-        text = strrep(text, param.pattern, imagename);
+        % replace first matched
+        index = strfind(text, param.pattern);
+        text = char(text);
+        text(index(1)+(0:numel(param.pattern)-1)) = '%#';
+        text = string(text);
+
+        text = strrep(text, '%#', imagename);
     else
         text = strcat(text, imagename);
     end

@@ -1,11 +1,11 @@
 function varargout = prepdln(varargin, dskwargs, kwargs)
     %% Create dataset to train deep neural network.
 
-    arguments (Repeating)
+    arguments (Repeating, Input)
         varargin {mustBeA(varargin, {'double', 'categorical', 'logical'})}
     end
 
-    arguments
+    arguments (Input)
         dskwargs.IterationDimension (1,:) cell = []
         dskwargs.ReadSize {mustBeInteger, mustBePositive} = 1
         dskwargs.OutputType {mustBeMember(dskwargs.OutputType, {'cell', 'same'})} = 'cell'
@@ -16,6 +16,10 @@ function varargout = prepdln(varargin, dskwargs, kwargs)
         kwargs.augment (1,:) = []
         kwargs.inputDataFormats (1,:) char = ''
         kwargs.targetDataFormats (1,:) char = ''
+    end
+
+    arguments (Repeating, Output)
+        varargout {mustBeA(varargout, {'matlab.io.datastore.TransformedDatastore', 'matlab.io.datastore.CombinedDatastore'})}
     end
 
     if isempty(dskwargs.IterationDimension)

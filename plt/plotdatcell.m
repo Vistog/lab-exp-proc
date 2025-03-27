@@ -39,6 +39,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         pltparam.linewidth (1,1) double = 0.75
         pltparam.levels (1,:) double = 50
         pltparam.alphadata (1,1) double = 1
+        pltparam.color (:,:) = []
         %% `legend` parameters
         lgd.legend (1,:) logical = false
         lgd.ltitle (1,:) {mustBeA(lgd.ltitle, {'char', 'string'})} = ''
@@ -64,6 +65,24 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
     arguments (Output, Repeating)
         varargout
     end
+
+    % if isempty(pltparam.color)
+    %     pltparam.color = colororder;
+    %     n = size(pltparam.color, 1);
+    %     m = numel(varargin{1});
+    % 
+    %     if n > m
+    %         pltparam.color = pltparam.color(1:m,:);
+    %     else
+    %         pltparam.color = repmat(pltparam.color, fix(m,n), 1);
+    %         pltparam.color = pltparam.color(1:end-mod(m,n),:);
+    %     end
+    % else
+    %     m = numel(varargin{1});
+    %     if size(pltparam.color, 1) < m; pltparam.color = repmat(pltparam.color, m, 1); end
+    % end
+    % 
+    % if isa(pltparam.color, 'double'); pltparam.color = mat2cell(pltparam.color, ones(1,size(pltparam.color,1)), 3)'; end
 
     if isempty(clb.cfontsize); clb.cfontsize = axparamset.fontsize; end
 
@@ -92,6 +111,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
     switch kwargs.plot
         case 'plot'
             listparam = {'linestyle', 'linewidth', 'marker'};
+            % listparam = {'linestyle', 'linewidth', 'marker', 'color'};
             cellfun(@(ax) hold(ax, 'on'), axs)
         case 'contourf'
             listparam = {'linestyle', 'linewidth', 'levels'};
@@ -105,6 +125,15 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
     % prepare plot appearance
     pltparamarg = namedargs2cell(pltparamarg);
     for i = 1:numel(pltparamarg); pltparamarg{i} = {repmat({pltparamarg{i}}, numel(varargin{1}), 1)}; end
+
+    % pltparamarg = namedargscomb(pltparamarg, ans = 'cell');
+    % if size(pltparamarg, 1) == 1
+    %     for i = 1:numel(pltparamarg); pltparamarg{i} = {repmat({pltparamarg{i}}, numel(varargin{1}), 1)}; end
+    % else
+    %     temp = {};
+    %     for i = 1:size(pltparamarg, 1); temp{i} = {pltparamarg(i,:)}; end
+    %     pltparamarg = temp;
+    % end
 
     % transform to handle
     if kwargs.plot == "contourf"; kwargs.plot = "contourfc"; end

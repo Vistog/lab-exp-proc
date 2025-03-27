@@ -12,6 +12,8 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         kwargsplt.sgtitle (1,:) char = ''
         figparam.docked (1,1) logical = false
         figparam.arrangement {mustBeMember(figparam.arrangement, {'flow', 'vertical', 'horizontal'})} = 'flow'
+        figparam.TileSpacing {mustBeMember(figparam.TileSpacing , {'loose', 'compact', 'tight', 'none'})} = 'loose'
+        figparam.Padding {mustBeMember(figparam.Padding, {'loose', 'compact', 'tight'})} = 'loose'
         %% parameters for `set(ax, arg{:})`
         axparamset.xscale {mustBeMember(axparamset.xscale, {'linear', 'log'}), mustBeA(axparamset.xscale, {'char', 'cell'})} = 'linear'
         axparamset.yscale {mustBeMember(axparamset.yscale, {'linear', 'log'}), mustBeA(axparamset.yscale, {'char', 'cell'})} = 'linear'
@@ -42,6 +44,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         pltparam.linewidth (1,1) double = 0.75
         pltparam.levels (1,:) double = 50
         pltparam.alphadata (1,1) double = 1
+        pltparam.color (:,:) = []
         %% ROI parameters
         roiparam.draw {mustBeMember(roiparam.draw, {'none', 'drawpoint', 'drawline', 'drawrectangle', 'drawpolygon', 'drawpolyline'}), ...
             mustBeA(roiparam.draw, {'char', 'cell'})} = 'none'
@@ -91,7 +94,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
     [data{:}] = splitdatcell(varargin{:}, dims = kwargs.dims);
 
     if figparam.docked; figure(WindowStyle = 'docked'); else; clf; end
-    tl = tiledlayout(figparam.arrangement);
+    tl = tiledlayout(figparam.arrangement, TileSpacing = figparam.TileSpacing, Padding = figparam.Padding);
 
     switch kwargs.ax
         case '1-n'
