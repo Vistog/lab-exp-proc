@@ -4,8 +4,10 @@ function saf(path, kwargs, options)
         path {mustBeTextScalar} = []
         kwargs.resolution (1,1) = 300
         kwargs.extension (1,:) char = '.png'
-        kwargs.obsidian {mustBeTextScalar}  = ""
+        kwargs.md {mustBeTextScalar}  = ""
         kwargs.units {mustBeMember(kwargs.units, {'pixels', 'normalized', 'inches', 'centimeters', 'points', 'characters'})} = 'centimeters'
+        kwargs.fontsize (1,:) double = []
+        kwargs.fontunits {mustBeMember(kwargs.fontunits, {'points', 'inches', 'centimeters', 'normalized', 'pixels'})} = 'centimeters'
         kwargs.size (1,:) double = [] 
         options.?matlab.ui.Figure
     end
@@ -27,6 +29,10 @@ function saf(path, kwargs, options)
         filename = fullfile(folder, figname);
         pause(1)
         
+        if ~isempty(kwargs.fontsize)
+            set(fighandle.Children, fontsize = kwargs.fontsize, fontunits = kwargs.fontunits);
+        end
+
         if ~isempty(kwargs.size)
             set(fighandle, WindowStyle = 'normal')
             pause(2)
@@ -38,7 +44,7 @@ function saf(path, kwargs, options)
         savefig(fighandle, strcat(filename, '.fig'));
 
         try
-            obs_paster(kwargs.obsidian, strcat(figname, kwargs.extension));
+            obs_paster(kwargs.md, strcat(figname, kwargs.extension));
         catch
         end
 
@@ -48,11 +54,15 @@ end
 
 function obs_paster(filename, imagename, param)
     arguments
-        filename {mustBeFile}
+        filename {mustBeTextScalar}
         imagename {mustBeTextScalar}
         param.size (1,:) {mustBeInteger, mustBeInRange(param.size, 1, 1000)} = 400
         param.pattern {mustBeTextScalar} = '%%'
         param.extenstion {mustBeTextScalar} = ".md"
+    end
+
+    if ~isfile(filename)
+        filename = fullfile(pwd, filename);
     end
 
     [~, ~, extenstion] = fileparts(filename);

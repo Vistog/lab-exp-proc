@@ -2,6 +2,7 @@ function varargout = loaddscomb(filename, param)
     %% Make sequential combination of datastore objects from specified files.
     arguments (Input)
         filename {mustBeA(filename, {'cell', 'char'})}
+        param.augmenter = []
         param.ans {mustBeMember(param.ans, {'cell', 'struct'})} = 'cell'
     end
     arguments (Output, Repeating)
@@ -15,7 +16,12 @@ function varargout = loaddscomb(filename, param)
         datastores{i} = struct2cell(l);
     end
     datastores = cellfun(@(varargin) combine(varargin{:}, ReadOrder = 'sequential'), datastores{:}, UniformOutput = false);
-    datastores = cellfun(@shuffle, datastores, UniformOutput=false);
+    if isempty(param.augmenter)
+        datastores = cellfun(@shuffle, datastores, UniformOutput = false);
+    else
+        datastores = cellfun(@(d) shuffle(combine(d, transform(d, @(x) augment(param.augmenter, x)), ReadOrder = 'sequential')), ...
+            datastores, UniformOutput = false);
+    end
     switch param.ans
         case 'cell'
             varargout = cell(numel(datastores), 1);

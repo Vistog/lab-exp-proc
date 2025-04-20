@@ -9,6 +9,7 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         kwargs.plot char {mustBeMember(kwargs.plot, {'plot', 'imagesc', 'contour', 'contourf', 'mesh'})} = 'plot'
         kwargs.title {mustBeA(kwargs.title, {'char', 'string', 'cell'})} = ''
         kwargs.sgtitle (1,:) char = ''
+        kwargs.imtileticks (1,1) logical = false 
         %% parameters for `set(ax, arg{:})`
         axparamset.xscale {mustBeMember(axparamset.xscale, {'linear', 'log'}), mustBeA(axparamset.xscale, {'char', 'cell'})} = 'linear'
         axparamset.yscale {mustBeMember(axparamset.yscale, {'linear', 'log'}), mustBeA(axparamset.yscale, {'char', 'cell'})} = 'linear'
@@ -30,6 +31,15 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
         axparamfunc.colormap {mustBeMember(axparamfunc.colormap, {'parula','turbo','hsv','hot','cool','spring','summer','autumn',...
             'winter','gray','bone','copper','pink','sky','abyss','jet','lines','colorcube','prism','flag','white'}), ...
             mustBeA(axparamfunc.colormap, {'char', 'cell'})} = 'turbo'
+        axparamfunc.xticks (1,:) = 'auto'
+        axparamfunc.yticks (1,:) = 'auto'
+        axparamfunc.zticks (1,:) = 'auto'
+        axparamfunc.xticklabels (1,:) = 'auto'
+        axparamfunc.yticklabels (1,:) = 'auto'
+        axparamfunc.zticklabels (1,:) = 'auto'
+        axparamfunc.xtickangle (1,1) = 0
+        axparamfunc.ytickangle (1,1) = 0
+        axparamfunc.ztickangle (1,1) = 0
         %% parameters for `axis(ax, arg{:})`
         axparamaxis.aspect {mustBeMember(axparamaxis.aspect, {'auto', 'equal', 'image', 'square'}), mustBeA(axparamaxis.aspect, {'char', 'cell'})} = 'auto'
         axparamaxis.limits (1,:) {mustBeNumeric} = []
@@ -83,6 +93,13 @@ function varargout = plotdatcell(varargin, kwargs, axparamset, axparamfunc, axpa
     % end
     % 
     % if isa(pltparam.color, 'double'); pltparam.color = mat2cell(pltparam.color, ones(1,size(pltparam.color,1)), 3)'; end
+
+    if kwargs.imtileticks
+        szd = size(varargin{end}{1});
+        szt = [numel(axparamfunc.xticklabels), numel(axparamfunc.yticklabels)];
+        axparamfunc.xticks = szd(2)/(2*szt(2)):szd(2)/szt(2):szd(2);
+        axparamfunc.yticks = szd(1)/(2*szt(1)):szd(1)/szt(2):szd(1);
+    end
 
     if isempty(clb.cfontsize); clb.cfontsize = axparamset.fontsize; end
 

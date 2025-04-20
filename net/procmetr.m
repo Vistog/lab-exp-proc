@@ -1,13 +1,16 @@
 function res = procmetr(T, Y, param)
     arguments (Input)
-        T % target data
-        Y % predict data
+        T {mustBeA(T, {'double', 'cell'})} % target data
+        Y {mustBeA(Y, {'double', 'cell'})} % predict data
         param.type {mustBeMember(param.type, {'none', 'segmentation'})} = 'none'
         param.ans {mustBeMember(param.ans, {'struct', 'table'})} = 'struct'
     end
     arguments (Output)
         res {mustBeA(res, {'struct', 'table'})}
     end
+
+    if isa(T, 'cell'); T = cell2arr(T); end
+    if isa(Y, 'cell'); Y = cell2arr(Y); end
 
     res = struct;
 

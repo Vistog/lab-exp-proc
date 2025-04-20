@@ -10,6 +10,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         kwargsplt.plot char {mustBeMember(kwargsplt.plot, {'plot', 'imagesc', 'contour', 'contourf', 'mesh'})} = 'plot'
         kwargsplt.title {mustBeA(kwargsplt.title, {'char', 'string', 'cell'})} = ''
         kwargsplt.sgtitle (1,:) char = ''
+        kwargsplt.imtileticks (1,1) logical = false 
         figparam.docked (1,1) logical = false
         figparam.arrangement {mustBeMember(figparam.arrangement, {'flow', 'vertical', 'horizontal'})} = 'flow'
         figparam.TileSpacing {mustBeMember(figparam.TileSpacing , {'loose', 'compact', 'tight', 'none'})} = 'loose'
@@ -35,6 +36,15 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         axparamfunc.colormap {mustBeMember(axparamfunc.colormap, {'parula','turbo','hsv','hot','cool','spring','summer','autumn',...
             'winter','gray','bone','copper','pink','sky','abyss','jet','lines','colorcube','prism','flag','white'}), ...
             mustBeA(axparamfunc.colormap, {'char', 'cell'})} = 'turbo'
+        axparamfunc.xticks (1,:) = 'auto'
+        axparamfunc.yticks (1,:) = 'auto'
+        axparamfunc.zticks (1,:) = 'auto'
+        axparamfunc.xticklabels (1,:) = 'auto'
+        axparamfunc.yticklabels (1,:) = 'auto'
+        axparamfunc.zticklabels (1,:) = 'auto'
+        axparamfunc.xtickangle (1,1) = 0
+        axparamfunc.ytickangle (1,1) = 0
+        axparamfunc.ztickangle (1,1) = 0
         %% parameters for `axis(ax, arg{:})`
         axparamaxis.aspect {mustBeMember(axparamaxis.aspect, {'auto', 'equal', 'image', 'square'}), mustBeA(axparamaxis.aspect, {'char', 'cell'})} = 'auto'
         axparamaxis.limits (1,:) {mustBeNumeric} = []
