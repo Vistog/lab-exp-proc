@@ -6,8 +6,8 @@ function [spec, f] = procspecn(data, kwargs)
         kwargs.ftdim (1,:) double = [] % dimensions to apply transform
         kwargs.chdim (1,:) double = [] % dimensions to process cross spectra
         kwargs.winlen (1,:) double = 1024 % transform window lengths
-        kwargs.overlap (1,:) double = 512 % transform window overlaps
-        kwargs.offset (1,:) {mustBeA(kwargs.offset, {'double', 'cell '})} = [] % sliding window offset at performing STFT
+        kwargs.overlap (1,:) double = 512 % transform window strides
+        kwargs.offset (1,:) {mustBeA(kwargs.offset, {'double', 'cell '})} = 0 % sliding window offset at performing STFT
         kwargs.side (1,:) char {mustBeMember(kwargs.side, {'single', 'double'})} = 'single' % spectra process mode
         kwargs.type (1,:) char {mustBeMember(kwargs.type, {'amp', 'power', 'psd'})} = 'power' % spectra process mode
         kwargs.avg (1,1) logical = true % averaging by statistics of spectra
@@ -39,9 +39,9 @@ function [spec, f] = procspecn(data, kwargs)
             case 'double'
                 f{i} = df(i) * (-nh:nh1-1);
         end
-        [f{:}] = ndgrid(f{:});
-        if numel(f) == 1; f = f{1}; end
     end
+    [f{:}] = ndgrid(f{:});
+    if isscalar(f); f = f{1}; end
 
     % create multidimensional window function
     switch kwargs.winfun
@@ -63,7 +63,8 @@ function [spec, f] = procspecn(data, kwargs)
     
     kernel = zeros(1, nd); kernel(kwargs.ftdim) = kwargs.winlen;
     stride = ones(1, nd); stride(kwargs.ftdim) = kwargs.overlap;
-    spec = nonlinfilt(data, method = @specker, kernel = kernel, stride = stride, offset = kwargs.offset, shape = 'valid');
+    offset = zeros(1, nd); offset(kwargs.ftdim) = kwargs.offset;
+    spec = nonlinfilt(data, method = @specker, kernel = kernel, stride = stride, offset = offset, shape = 'valid');
 
     if ismatrix(spec); nd = nd - 1; end
 

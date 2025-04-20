@@ -72,7 +72,7 @@ function varargout = nonlinfilt(varargin, kwargs)
         kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string'})} = nan % padding value
         kwargs.shape (1,:) {mustBeMember(kwargs.shape, {'same', 'valid'})} = 'same' % subsection of the sliding window
         kwargs.verbose (1,1) logical = false % logger
-        kwargs.cast (1,:) char {mustBeMember(kwargs.cast, {'int8', 'int16', 'int32', 'int64'})} = 'int16'
+        kwargs.cast (1,:) char {mustBeMember(kwargs.cast, {'int8', 'int16', 'int32', 'int64'})} = 'int64'
         kwargs.filtpass (1,1) logical = false;
     end
 
