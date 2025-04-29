@@ -16,6 +16,8 @@ function varargout = dirgrad(u, w, angle, kwargs)
         % prefilter kernel
         kwargs.prefilt (1,:) char {mustBeMember(kwargs.prefilt, {'none', 'average', 'gaussian', 'median', 'wiener'})} = 'gaussian'
         kwargs.prefiltker double = [3, 3] % prefilter kernel size
+        % optional
+        kwargs.paral (1,1) logical = true
     end
 
     mat = [cos(angle)^2, cos(angle)*sin(angle), cos(angle)*sin(angle), sin(angle)^2; ...
@@ -23,32 +25,46 @@ function varargout = dirgrad(u, w, angle, kwargs)
         -cos(angle)*sin(angle), -sin(angle)^2, cos(angle)^2, cos(angle)*sin(angle); ...
         sin(angle)^2, -cos(angle)*sin(angle), -cos(angle)*sin(angle), cos(angle)^2];
 
-    sz = size(u); u = u(:, :, :); w = w(:, :, :);
+    sz = size(u);
+
+    Gx = difkernel(kwargs.diffilt); Gz = Gx';
 
     % velocity prefiltering
-    u = imfilt(u, filt = kwargs.prefilt, filtker = kwargs.prefiltker);
-    w = imfilt(w, filt = kwargs.prefilt, filtker = kwargs.prefiltker);
+    u = imfilt(u, filt = kwargs.prefilt, filtker = kwargs.prefiltker, paral = kwargs.paral);
+    w = imfilt(w, filt = kwargs.prefilt, filtker = kwargs.prefiltker, paral = kwargs.paral);
 
-    % derivation
-    Gx = difkernel(kwargs.diffilt); Gz = Gx';
-    dudx = imfilter(u, Gx); dudz = imfilter(u, Gz);
-    dwdx = imfilter(w, Gx); dwdz = imfilter(w, Gz);
-        
-    % rotate
-    vr = mat' * [dudx(:), dudz(:), dwdx(:), dwdz(:)]';
     switch kwargs.component
         case 'dudl'
-            varargout{1} = reshape(vr(1, :), sz);
+            ind = 1;
         case 'dudn'
-            varargout{1} = reshape(vr(2, :), sz);
+            ind = 2;
         case 'dwdl'
-            varargout{1} = reshape(vr(3, :), sz);
+            ind = 3;
         case 'dwdn'
-            varargout{1} = reshape(vr(4, :), sz);
+            ind = 4;
         case 'all'
-            varargout{1} = reshape(vr(1, :), sz);
-            varargout{2} = reshape(vr(2, :), sz);
-            varargout{3} = reshape(vr(3, :), sz);
-            varargout{4} = reshape(vr(4, :), sz);
+            ind = 1:4;
     end
+
+    % allocate
+    vr = zeros(prod(sz(1:2)), numel(ind), prod(sz(3:end)));
+
+    for i = 1:prod(sz(3:end))
+        % derivation
+        dudx = imfilter(u(:,:,i), Gx); dudz = imfilter(u(:,:,i), Gz);
+        dwdx = imfilter(w(:,:,i), Gx); dwdz = imfilter(w(:,:,i), Gz);
+        % rotate
+        temp = [dudx(:), dudz(:), dwdx(:), dwdz(:)]*mat;
+        % slice
+        temp = temp(:, ind);
+        vr(:, :, i) = temp;
+    end
+        
+    if isscalar(ind)
+        varargout{1} = reshape(vr(:, 1, :), sz);
+    else
+        varargout = cell(4, 1);
+        [varargout{:}] = cellfun(@(n) reshape(vr(:, n, :), sz), num2cell(ind), UniformOutput = false);
+    end
+
 end

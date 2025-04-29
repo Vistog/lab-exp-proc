@@ -4,7 +4,7 @@ function data = imfilt(data, kwargs)
     arguments (Input)
         data
         % filter name
-        kwargs.filt (1,:) char {mustBeMember(kwargs.filt, {'none', 'gaussian', 'average', 'median', 'wiener', 'wiener-median', 'mode', 'fillmissing', 'mediancond'})} = 'gaussian'
+        kwargs.filt (1,:) char {mustBeMember(kwargs.filt, {'none', 'gaussian', 'average', 'median', 'wiener', 'wiener-median', 'mode', 'fillmiss', 'mediancond'})} = 'gaussian'
         kwargs.filtker double = [3, 3] % kernel size
         kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string'})} = nan % padding value
         kwargs.method (1,:) char {mustBeMember(kwargs.method, {'none', 'linear', 'nearest', 'natural', 'cubic', 'v4'})} = 'none' % at specifying `fillmissing`
@@ -42,7 +42,7 @@ function data = imfilt(data, kwargs)
             data = reshape(data, sz);
         case 'mode'
             data = nonlinfilt(data, method = @(x) mode(x(:)), kernel = kwargs.filtker, padval = kwargs.padval, verbose = kwargs.verbose);
-        case 'fillmissing'
+        case 'fillmiss'
             if kwargs.method ~= "none"
                 if kwargs.zero2nan; data(data==0) = nan; end
                 sz = size(data);

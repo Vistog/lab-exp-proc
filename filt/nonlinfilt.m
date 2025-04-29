@@ -74,6 +74,7 @@ function varargout = nonlinfilt(varargin, kwargs)
         kwargs.verbose (1,1) logical = false % logger
         kwargs.cast (1,:) char {mustBeMember(kwargs.cast, {'int8', 'int16', 'int32', 'int64'})} = 'int16'
         kwargs.filtpass (1,1) logical = false;
+        kwargs.ans {mustBeMember(kwargs.ans, {'array', 'cell'})} = 'array'
     end
 
     arguments (Repeating, Output)
@@ -373,6 +374,8 @@ function varargout = nonlinfilt(varargin, kwargs)
     result = squeeze(reshape(result, [szf, szout]));
 
     if kwargs.verbose; disp(strcat("nonlinfilt: elapsed time is ", num2str(toc(timer)), " seconds")); end
+
+    if kwargs.ans == "cell"; result = {result}; end
 
     varargout{1} = result;
 

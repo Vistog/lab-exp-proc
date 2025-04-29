@@ -47,6 +47,8 @@ function animrec(varargin, kwargs)
         kwargs.docked (1,1) logical = true
         kwargs.figsize = []
         kwargs.figunits {mustBeMember(kwargs.figunits, {'points', 'pixels', 'inches', 'centimeters'})} = 'centimeters'
+        kwargs.md (1,:) char
+        kwargs.framesz (1,1) = 400
     end
 
     if nargin == 0
@@ -186,5 +188,10 @@ function animrec(varargin, kwargs)
     end
 
     if kwargs.docked; set(fig, WindowStyle = 'docked'); end
+
+    if ~isempty(kwargs.md)
+        [~, filename, extension] = fileparts(kwargs.filename);
+        obscontpast(kwargs.md, strcat(filename, extension), fig = false, size = kwargs.framesz);
+    end
 
 end

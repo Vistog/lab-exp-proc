@@ -87,7 +87,6 @@ function fitdistcoef =  procfitdistcoef(data, kwargs)
             kernel = kwargs.kernel, stride = kwargs.stride, offset = kwargs.offset, padval = kwargs.padval);
     end
 
-
     fitdistcoef = imfilt(fitdistcoef, filt = kwargs.postfilt, filtker = kwargs.postfiltker, padval = kwargs.padval);
 
     fitdistcoef = imdresize(fitdistcoef, szd(1:2));

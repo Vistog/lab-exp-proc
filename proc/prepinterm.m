@@ -39,6 +39,8 @@ function result = prepinterm(data, kwargs)
         kwargs.postfilt (1,:) char {mustBeMember(kwargs.postfilt, {'none', 'gaussian', 'average', 'median', 'wiener', 'wiener-median', 'mode'})} = 'median'
         % postfilter
         kwargs.postfiltker (1,:) double = [15, 15] % postfilter kernel size
+        %% optional
+        kwargs.paral (1,1) logical = true
     end
 
     result = [];
@@ -48,6 +50,10 @@ function result = prepinterm(data, kwargs)
     
         % norm velocity
         if kwargs.norm && isfield(data, 'U') && isfield(data, 'W')
+            if kwargs.fillmiss ~= "none"
+                data.U = imfilt(data.U, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
+                data.W = imfilt(data.W, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
+            end
             Vm = hypot(data.U, data.W);
             if ~ismatrix(Vm); Vm = mean(Vm, 3); end
             u = u./Vm;
@@ -56,13 +62,8 @@ function result = prepinterm(data, kwargs)
     
         % fillmissing
         if kwargs.fillmiss ~= "none"
-            sz = size(u);
-            u(u == 0) = nan; w(w == 0) = nan;
-            parfor i = 1:prod(sz(3:end))
-                u(:,:,i) = fillmissing2(u(:,:,i), kwargs.fillmiss);
-                w(:,:,i) = fillmissing2(w(:,:,i), kwargs.fillmiss);
-            end
-            u = reshape(u, sz); w = reshape(w, sz);
+            data.u = imfilt(data.u, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
+            data.w = imfilt(data.w, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
         end
     end
 
