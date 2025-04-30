@@ -47,13 +47,12 @@ function varargout = prepdln(varargin, dskwargs, kwargs)
 
     % if nargin >= 2; varargin{2} = dlarray(varargin{2}, kwargs.targetDataFormats); end
 
-    % dskwargs = namedargs2cell(dskwargs);
-    dskwargs = permnamedargs(dskwargs);
+    dskwargs = namedargscomb(dskwargs, ans = 'cell');
     for i = 1:nargin
         if isempty(kwargs.wrapper{i})
-            args = cat(2, varargin{i}, dskwargs{i});
+            args = cat(2, varargin{i}, dskwargs(i,:));
         else
-            args = cat(2, kwargs.wrapper{i}(varargin{i}), dskwargs{i});
+            args = cat(2, kwargs.wrapper{i}(varargin{i}), dskwargs(i,:));
         end
         varargin{i} = arrayDatastore(args{:});
         if ~isempty(kwargs.transform{i}); varargin{i} = transform(varargin{i}, @(x) kwargs.transform{i}(x)); end
