@@ -95,7 +95,7 @@ function varargout = nonlinfilt(varargin, kwargs)
     filtevalh = memoize(@filteval);
 
     [kwargs.kernel, kwargs.stride, kwargs.offset, outboundind, szf, filtpass] = filtevalh(sz, ndimsarg, ...
-        kwargs.kernel, kwargs.stride, kwargs.offset, kwargs.shape, kwargs.cast, true);
+        kwargs.kernel, kwargs.stride, kwargs.offset, kwargs.shape, kwargs.cast, kwargs.filtpass);
 
     % padding of input data
     for i = 1:nargin
@@ -125,7 +125,8 @@ function varargout = nonlinfilt(varargin, kwargs)
             end
             dataslice{i} = varargin{i}(temporary{:});
         end
-        result{k} = kwargs.method(dataslice{:}, k); 
+        % result{k} = kwargs.method(dataslice{:}, k); 
+        result{k} = kwargs.method(dataslice{:}); 
     end
 
     switch kwargs.ans

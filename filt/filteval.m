@@ -33,9 +33,6 @@ function [kernel, stride, offset, outboundind, szf, filtpass] = filteval(szarg, 
 
     % stride validation
     if isempty(stride)
-        % for i = 1:nargin
-        %     stride{i} = ones(size(kernel{i}));
-        % end
         stride = cellfun(@(x) ones(size(x)), kernel, UniformOutput = false);
     end
     if isa(stride, 'double')
@@ -51,9 +48,6 @@ function [kernel, stride, offset, outboundind, szf, filtpass] = filteval(szarg, 
 
     % offset validation
     if isempty(offset)
-        % for i = 1:nargin
-        %     offset{i} = zeros(size(kernel{i}));
-        % end
         offset = cellfun(@(x) zeros(size(x)), kernel, UniformOutput = false);
     end
     if isa(offset, 'double')
@@ -230,7 +224,7 @@ function [kernel, stride, offset, outboundind, szf, filtpass] = filteval(szarg, 
 
         nel = prod(szf);
 
-        filtpass = cell(nel, nargin);
+        filtpass = cell(nel, 1);
         parfor k = 1:nel
             dataslice = cell(1, numel(szarg));
             
