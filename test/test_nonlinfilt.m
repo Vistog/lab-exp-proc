@@ -207,6 +207,7 @@ function viewfiltpass(mask, nker, kwargs)
         nker (1,1) double
         kwargs.pause (1,1) double = 1e-3
     end
+    mask = cellfun(@double,mask,UniformOutput=false);
     clf; tl = tiledlayout('flow'); ax = cell(1, numel(mask));
     for i = 1:numel(mask); ax{i} = nexttile(tl); end
     for i = 1:size(mask{1}, nker)

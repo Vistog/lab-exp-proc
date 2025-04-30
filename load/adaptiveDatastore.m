@@ -61,7 +61,7 @@ classdef adaptiveDatastore
         function folder = makeStorage(~)
             folder = fullfile(tempdir, strrep(string(datetime), ':', '-'));
             if isfolder(folder)
-                rmdir(folder)
+                rmdir(folder, 's')
             end
             mkdir(folder)
         end
