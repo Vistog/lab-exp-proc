@@ -1,0 +1,216 @@
+{
+  "main": {
+    "id": "50a338f9caa10c37",
+    "type": "split",
+    "children": [
+      {
+        "id": "e15dde7396176b16",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4f08280e1a36c0c0",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "readme.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "readme"
+            }
+          },
+          {
+            "id": "286804edf133819e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/func/loadpiv.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "loadpiv"
+            }
+          },
+          {
+            "id": "b0fd09ca6ca3cfef",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/func/filteval.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "filteval"
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "a0293ef13ec66519",
+    "type": "split",
+    "children": [
+      {
+        "id": "aaf7ffcc5fb62c83",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4e4add6d8bf87bf7",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "025434e9db68659a",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "e9c0e43c6b3dd55e",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "c61d5a37f049efaa",
+    "type": "split",
+    "children": [
+      {
+        "id": "80f214d83443d085",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6e68011f6fd0adb8",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "docs/func/filteval.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for filteval"
+            }
+          },
+          {
+            "id": "44f17ec7b98f36e6",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "docs/func/filteval.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from filteval"
+            }
+          },
+          {
+            "id": "491603ae8f25a940",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "484aa10680759632",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "docs/func/filteval.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of filteval"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "b0fd09ca6ca3cfef",
+  "lastOpenFiles": [
+    "filt/filteval.asv",
+    "docs/func/loadpiv.md",
+    "docs/func/filteval.md",
+    "readme.md",
+    "docs/template.md",
+    "docs/func",
+    "docs/html/pub_gridcta_02.png",
+    "docs/html/pub_calibcta_02.png",
+    "docs/html/pub_gridcta_12.png",
+    "docs/html/pub_gridcta_11.png",
+    "docs/html/pub_gridcta_08.png",
+    "docs/html/pub_gridcta_03.png",
+    "docs/html/pub_findoffsetcta_01.png"
+  ]
+}

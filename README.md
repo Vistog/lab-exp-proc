@@ -5,3 +5,19 @@ To import scripts perform following:
 ```matlab
 addpath(genpath(<local-project-path>))
 ```
+
+
+#### Content
+- [[filteval]]
+
+
+```dataview
+list 
+from "docs/func"
+
+```
+
+```dataview
+table contex
+from "docs/func"
+```

@@ -1,4 +1,61 @@
 %%
+[result, mask] = nonlinfilt(@(x,~)mean(x(:)), rand(20,20,5), ...
+    kernel = [1, nan, nan], stride = [2, 2, 1], offset = [-3, 0], ...
+    isfiltpass = true, verbose=true, cast = 'int16');
+%%
+clearAllMemoizedCaches
+
+%%
+clc
+kwargs = struct;
+kwargs.szarg = {[20,20,3],[20,20,3]};
+kwargs.kernel = [nan, nan, 1];
+kwargs.stride = [1,1,1];
+kwargs.offset = [];
+kwargs.cast = 'int16';
+kwargs.isfiltpass = true;
+% kwargs.padval = {true, true, true};
+kwargs.padval = [];
+
+arg = namedargs2cell(kwargs);
+kwargs = filteval(arg{:});
+
+viewfiltpass2(kwargs.filtpass, 4, pause = 1e-3);
+%%
+clear; clc;
+[result, mask] = nonlinfilt(@(x)mean(x(:)), rand(20,20,2), ...
+    kernel = [3, 3], stride = [1, 1], offset = [0, 0], ...
+    isfiltpass = true, shape = 'same', verbose=true, cast = 'int16', ...
+    ispad={{0,0,0}});
+clearAllMemoizedCaches
+%
+viewfiltpass2(mask, 4, pause = 1e-3);
+%%
+clear; clc;
+[result, mask] = nonlinfilt(@(x)mean(x(:)), rand(20,20,5), ...
+    kernel = [1, nan, nan], stride = [2, 2, 1], offset = [-3, 0], ...
+    isfiltpass = true, shape = 'same', verbose=true, cast = 'int16');
+clearAllMemoizedCaches
+%
+viewfiltpass2(mask, 4, pause = 1e-3);
+%%
+opts.padval = {{10, nan, "symmetrical", "none"}}
+opts.padvalbool = {};
+for i = 1:numel(opts.padval)
+    for j = 1:numel(opts.padval)
+        if opts.padval{i}{j} == "none"
+            flag = true;
+        else
+            flag = false;
+        end
+        opts.padvalbool{i}(j) = flag;
+    end
+end
+%%
+x = rand(1,20);
+[~, mask] = nonlinfilt(x, method = @rms, kernel = 0, stride = 1, offset = 0, ...
+    filtpass = true, shape = 'same');
+%%
 x = rand(1,20);
 [~, mask] = nonlinfilt(x, method = @rms, kernel = 0, stride = 1, offset = 0, ...
     filtpass = true, shape = 'same');
@@ -223,6 +280,37 @@ function viewfiltpass(mask, nker, kwargs)
                 otherwise
                     imagesc(ax{j}, imtile(mask{j}(:,:,:,i), GridSize = [nan, 1]));
             end
+            axis(ax{j}, 'image');
+            drawnow; 
+        end
+        pause(kwargs.pause);
+    end
+end
+
+function viewfiltpass2(mask, nker, kwargs)
+    arguments
+        mask (1,:) cell
+        nker (1,1) double
+        kwargs.pause (1,1) double = 1e-3
+    end
+    % mask = cellfun(@double,mask,UniformOutput=false);
+    clf; tl = tiledlayout('flow'); ax = cell(1, numel(mask));
+    for i = 1:numel(mask{1}) ax{i} = nexttile(tl); end
+    for i = 1:numel(mask)
+        for j = 1:numel(mask{i})
+            mask{i}{j} = double(mask{i}{j});
+            cla(ax{j})
+            imagesc(ax{j}, imtile(mask{i}{j}, GridSize = [nan, 1]));
+            % switch nker
+            %     case 1
+            %         imagesc(ax{j}, mask{i}{j});
+            %     case 2
+            %         imagesc(ax{j}, mask{j}(:,:,i));
+            %     case 3
+            %         imagesc(ax{j}, mask{j}(:,:,i));
+            %     otherwise
+            %         imagesc(ax{j}, imtile(mask{j}(:,:,:,i), GridSize = [nan, 1]));
+            % end
             axis(ax{j}, 'image');
             drawnow; 
         end

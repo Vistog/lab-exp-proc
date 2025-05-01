@@ -1,4 +1,4 @@
-function varargout = nonlinfilt(varargin, kwargs)
+function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts)
     %% Filter data by multi dimensional sliding window and multi argument nonlinear kernel.
     % `varargin` is a positional argument corresponding to the data.
     %
@@ -60,91 +60,146 @@ function varargout = nonlinfilt(varargin, kwargs)
     % x2 = rand(20,20,2);
     % y = nonlinfilt(x1, x2, method = @(x1,x2)rms(x1(:)).*rms(x2(:)), kernel = {[5, 5, nan], [10, 10, nan]}, stride = [1, 1, nan]);
 
+    arguments (Input)
+        method function_handle %% non-linear kernel function
+    end
+
     arguments (Repeating, Input)
         varargin % data
     end
 
     arguments (Input)
-        kwargs.method function_handle %% non-linear kernel function
         kwargs.kernel {mustBeA(kwargs.kernel, {'double', 'cell'})} = [] % window size
         kwargs.stride {mustBeA(kwargs.stride, {'double', 'cell'})} = [] % window stride
         kwargs.offset {mustBeA(kwargs.offset, {'double', 'cell'})} = [] % window offset
-        kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string'})} = nan % padding value
-        kwargs.shape (1,:) {mustBeMember(kwargs.shape, {'same', 'valid'})} = 'same' % subsection of the sliding window
-        kwargs.verbose (1,1) logical = false % logger
-        kwargs.cast (1,:) char {mustBeMember(kwargs.cast, {'int8', 'int16', 'int32', 'int64'})} = 'int64'
-        kwargs.filtpass (1,1) logical = false;
-        kwargs.ans {mustBeMember(kwargs.ans, {'array', 'cell'})} = 'array'
+        kwargs.cast (1,:) char {mustBeMember(kwargs.cast, {'int8', 'int16', 'int32', 'int64'})} = 'int32'
+        kwargs.padval = nan % padding value
+        opts.verbose logical {mustBeScalarOrEmpty} = false % logger
+        opts.ans {mustBeMember(opts.ans, {'array', 'cell', 'filedatastore'})} = 'array'
+        opts.usefiledatastore (1, 1) logical = false
+        opts.useparallel (1,1) logical = false
+        opts.extract {mustBeMember(opts.extract, {'readall', 'writeall'})} = 'readall'
     end
 
-    arguments (Repeating, Output)
-        varargout
+    arguments (Output)
+        result
+        szfilt
     end
 
     timer = tic;
 
-    % evaluate size and dim of input data, flat vector data
-    % sz = cell(1, nargin);
-    for i = 1:nargin
+    if opts.usefiledatastore
+        opts.folder = makefolder();
+        opts.method = method;
+        method = @(varargin) matfilesaveker(opts.folder, varargin{:});
+    end
+
+    % flat vector data
+    for i = 1:numel(varargin)
         if isvector(varargin{i}); varargin{i} = varargin{i}(:); end
     end
 
-    sz = cellfun(@size, varargin, UniformOutput = false);
-    ndimsarg = cellfun(@ndims, varargin, UniformOutput = false);
+    % evaluate size
+    kwargs.szarg = cellfun(@size, varargin, UniformOutput = false);
 
+    % evaluate filter passing
     filtevalh = memoize(@filteval);
+    arg = namedargs2cell(kwargs);
+    kwargs = filtevalh(arg{:});
 
-    [kwargs.kernel, kwargs.stride, kwargs.offset, outboundind, szf, filtpass] = filtevalh(sz, ndimsarg, ...
-        kwargs.kernel, kwargs.stride, kwargs.offset, kwargs.shape, kwargs.cast, kwargs.filtpass);
+    % append padding
+    for i = 1:kwargs.narg
+        for j = 1:size(kwargs.outbound{i}, 1)
+            padsize = zeros(1, size(kwargs.outbound{i}, 1));
+            padsize(j) = kwargs.outbound{i}(j, 1);
+            varargin{i} = padarray(varargin{i}, padsize, kwargs.padval{i}{j}, 'pre');
 
-    % padding of input data
-    for i = 1:nargin
-        for j = 1:size(outboundind{i}, 1)
-            padsize = zeros(1, size(outboundind{i}, 1));
-            padsize(j) = outboundind{i}(j, 1);
-            varargin{i} = padarray(varargin{i}, padsize, kwargs.padval, 'pre');
-
-            padsize = zeros(1, size(outboundind{i}, 1));
-            padsize(j) = outboundind{i}(j, 2);
-            varargin{i} = padarray(varargin{i}, padsize, kwargs.padval, 'post');
+            padsize = zeros(1, size(kwargs.outbound{i}, 1));
+            padsize(j) = kwargs.outbound{i}(j, 2);
+            varargin{i} = padarray(varargin{i}, padsize, kwargs.padval{i}{j}, 'post');
         end
     end
 
-    nel = prod(szf);
-
-    result = cell(nel, 1);
-
-    parfor k = 1:nel
-        dataslice = cell(1, numel(sz));
-        for i = 1:numel(sz)   
+    % parallel iteration
+    result = cell(kwargs.numfilt, 1);
+    parfor k = 1:kwargs.numfilt
+        dataslice = cell(1, kwargs.narg);
+        for i = 1:kwargs.narg   
             kernel = kwargs.kernel{i}(:,k);
             stride = kwargs.stride{i}(:,k);
-            temporary = cell(1, numel(sz{i}));
-            for j = 1:numel(sz{i})
+            temporary = cell(1, kwargs.ndimsarg{i});
+            for j = 1:kwargs.ndimsarg{i}
                 temporary{j} = stride(j) + (0:kernel(j));
             end
             dataslice{i} = varargin{i}(temporary{:});
         end
-        % result{k} = kwargs.method(dataslice{:}, k); 
-        result{k} = kwargs.method(dataslice{:}); 
+        result{k} = method(dataslice{:}, k); 
     end
 
-    switch kwargs.ans
+    if opts.usefiledatastore
+        dsf = fileDatastore(opts.folder, FileExtensions = '.mat', ReadFcn = @ReadFcn);
+        dsft = transform(dsf, @(x) {opts.method(x{1:end-1}), x{end}});
+        switch opts.extract
+            case 'readall'
+                result = readall(dsft, UseParallel = opts.useparallel);
+            case 'writeall'
+                opts.foldersec = makefolder();
+                writeall(dsft, opts.foldersec, WriteFcn = @WriteFcn, ...
+                    UseParallel = opts.useparallel, ...
+                    FolderLayout = 'flatten');
+
+                dsfr = fileDatastore(opts.foldersec, FileExtensions = '.mat', ReadFcn = @ReadFcn);
+                dsft = transform(dsfr, @(x) {x{1:end-1}, x{end}});
+
+                result = readall(dsft, UseParallel = opts.useparallel);
+
+                % remove datastore folders
+                cellfun(@(x) rmdir(x, 's'), dsfr.Folders);
+        end
+        
+        % remove datastore folders
+        cellfun(@(x) rmdir(x, 's'), dsf.Folders);
+        
+        % soft filter iteration
+        [~, index] = sort(cell2mat(result(:, end)));
+        result = result(index, 1:end-1);
+    end
+
+    switch opts.ans
         case 'array'
             result = cell2arr(result);
 
             if isvector(result)
-                resh = szf;
+                resh = kwargs.szfilt;
             else
-                resh = [size(result, 1:ndims(result)-1), szf];
+                resh = [size(result, 1:ndims(result)-1), kwargs.szfilt];
             end
         
             result = reshape(result, resh);
     end
 
-    if kwargs.verbose; disp(strcat("nonlinfilt: elapsed time is ", num2str(toc(timer)), " seconds")); end
+    szfilt = kwargs.szfilt;
 
-    varargout{1} = result;
-    varargout{2} = filtpass;
+    if opts.verbose; disp(strcat("nonlinfilt: elapsed time is ", num2str(toc(timer)), " seconds")); end
 
+end
+
+function y = matfilesaveker(folder, varargin)
+    save(fullfile(folder, strcat("part",num2str(varargin{end}),".mat")), "varargin")
+    y = [];
+end
+
+function y = ReadFcn(x)
+    y = struct2cell(load(x));
+    y = y{:};
+end
+
+function WriteFcn(data, writeInfo, ~)
+    save(writeInfo.SuggestedOutputName, 'data')
+end
+
+function folder = makefolder()
+    folder = fullfile(tempdir, strrep(string(datetime), ':', '-'));
+    if isfolder(folder); rmdir(folder, 's'); end
+    mkdir(folder)
 end
