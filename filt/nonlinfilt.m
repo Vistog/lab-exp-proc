@@ -1,4 +1,4 @@
-function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts)
+function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts, pool)
     %% Filter data by multi dimensional sliding window and multi argument nonlinear kernel.
     % `varargin` is a positional argument corresponding to the data.
     %
@@ -79,12 +79,19 @@ function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts)
         opts.usefiledatastore (1, 1) logical = false
         opts.useparallel (1,1) logical = false
         opts.extract {mustBeMember(opts.extract, {'readall', 'writeall'})} = 'readall'
+        pool.poolsize = {16, 16}
+        pool.resources {mustBeA(pool.resources, {'cell'}), mustBeMember(pool.resources, {'Processes', 'Threads'})} = {'Threads', 'Threads'}
     end
 
     arguments (Output)
         result
         szfilt
     end
+
+    % prepare pool
+    poolarg = cellfun(@(x,y){x,y}, pool.resources, pool.poolsize, UniformOutput = false);
+    delete(gcp('nocreate'))
+    parpool(poolarg{1}{:});
 
     timer = tic;
 
@@ -139,6 +146,10 @@ function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts)
     if opts.usefiledatastore
         dsf = fileDatastore(opts.folder, FileExtensions = '.mat', ReadFcn = @ReadFcn);
         dsft = transform(dsf, @(x) {opts.method(x{1:end-1}), x{end}});
+
+        delete(gcp('nocreate'))
+        parpool(poolarg{2}{:});
+
         switch opts.extract
             case 'readall'
                 result = readall(dsft, UseParallel = opts.useparallel);
@@ -174,8 +185,8 @@ function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts)
             else
                 resh = [size(result, 1:ndims(result)-1), kwargs.szfilt];
             end
-        
-            result = reshape(result, resh);
+
+            result = squeeze(reshape(result, resh));
     end
 
     szfilt = kwargs.szfilt;
@@ -185,7 +196,7 @@ function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts)
 end
 
 function y = matfilesaveker(folder, varargin)
-    save(fullfile(folder, strcat("part",num2str(varargin{end}),".mat")), "varargin")
+    save(fullfile(folder, strcat('part', num2str(varargin{end}), '.mat')), 'varargin')
     y = [];
 end
 

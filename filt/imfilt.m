@@ -1,65 +1,48 @@
-function data = imfilt(data, kwargs)
+function data = imfilt(data, kwargs, opts)
     %% Batch filtering of 2D data.
 
     arguments (Input)
         data
         % filter name
-        kwargs.filt (1,:) char {mustBeMember(kwargs.filt, {'none', 'gaussian', 'average', 'median', 'wiener', 'wiener-median', 'mode', 'fillmiss', 'mediancond'})} = 'gaussian'
+        kwargs.filt (1,:) char {mustBeMember(kwargs.filt, {'none', 'gaussian', 'average', 'median', 'wiener', 'median-omitmiss', 'fillmiss', 'mediancond'})} = 'gaussian'
         kwargs.filtker double = [3, 3] % kernel size
         kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string'})} = nan % padding value
-        kwargs.method (1,:) char {mustBeMember(kwargs.method, {'none', 'linear', 'nearest', 'natural', 'cubic', 'v4'})} = 'none' % at specifying `fillmissing`
+        kwargs.method (1,:) char {mustBeMember(kwargs.method, {'linear', 'nearest', 'natural', 'cubic', 'v4'})} = 'nearest' % at specifying `filtker=fillmiss`
         kwargs.zero2nan (1,1) logical = true
         kwargs.verbose (1,1) logical = true
         kwargs.mediancondvars (1,2) double = [1, 1]
         kwargs.paral (1,1) logical = true
+
+        opts.usefiledatastore (1, 1) logical = false
+        opts.useparallel (1,1) logical = false
+        opts.extract {mustBeMember(opts.extract, {'readall', 'writeall'})} = 'readall'
+        opts.poolsize = {16, 16}
+        opts.resources {mustBeA(opts.resources, {'cell'}), mustBeMember(opts.resources, {'Processes', 'Threads'})} = {'Threads', 'Threads'}
+
     end
 
     arguments (Output)
         data
     end
 
+    arg = namedargs2cell(opts);
+
     switch kwargs.filt
-        case 'average'
-            data = imfilter(data, fspecial(kwargs.filt, kwargs.filtker), kwargs.padval);
-        case 'gaussian'
-            data = imfilter(data, fspecial(kwargs.filt, kwargs.filtker), kwargs.padval);
-        case 'median'
-            data = nonlinfilt(data, method = @(x) median(x(:), 'omitmissing'), kernel = kwargs.filtker, padval = kwargs.padval, verbose = kwargs.verbose);
         case 'wiener'
-            sz = size(data);
-            for i = 1:prod(sz(3:end))
-                data(:, :, i) = wiener2(data(:, :, i), kwargs.filtker);
-            end
-            data = reshape(data, sz);
-        case 'wiener-median'
-            sz = size(data);
-            for i = 1:prod(sz(3:end))
-                data(:, :, i) = wiener2(data(:, :, i), kwargs.filtker);
-            end
-            for i = 1:prod(sz(3:end))
-                data(:, :, i) = medfilt2(data(:, :, i), kwargs.filtker);
-            end
-            data = reshape(data, sz);
-        case 'mode'
-            data = nonlinfilt(data, method = @(x) mode(x(:)), kernel = kwargs.filtker, padval = kwargs.padval, verbose = kwargs.verbose);
+            data = nonlinfilt(@(x,~) wiener2(x, kwargs.filtker), kernel = [nan, nan], padval = false);
+        case 'median'
+            data = nonlinfilt(@(x,~) medfilt2(x, kwargs.filtker), kernel = [nan, nan], padval = false);
+        case 'median-omitmiss'
+            data = nonlinfilt(@(x,~) median(x(:), 'omitmissing'), kernel = kwargs.filtker, ...
+                padval = kwargs.padval);
         case 'fillmiss'
-            if kwargs.method ~= "none"
-                if kwargs.zero2nan; data(data==0) = nan; end
-                sz = size(data);
-                if kwargs.paral
-                    parfor i = 1:prod(sz(3:end))
-                        data(:, :, i) = fillmissing2(data(:, :, i), kwargs.method);
-                    end
-                else
-                    for i = 1:prod(sz(3:end))
-                        data(:, :, i) = fillmissing2(data(:, :, i), kwargs.method);
-                    end
-                end
-                data = reshape(data, sz);
-            end
+            if kwargs.zero2nan; data(data==0) = nan; end
+            data = nonlinfilt(@(x,~) fillmissing2(x, kwargs.method), data, kernel = [nan, nan], padval = false);
         case 'mediancond'
-            data = nonlinfilt(data, method = @(x) kermedcond(x, kwargs.mediancondvars), kernel = kwargs.filtker, ...
+            data = nonlinfilt(@(x,~) kermedcond(x, kwargs.mediancondvars), data, kernel = kwargs.filtker, ...
                 padval = kwargs.padval, verbose = kwargs.verbose);
+        otherwise
+            data = imfilter(data, fspecial(kwargs.filt, kwargs.filtker), kwargs.padval);
     end
 
     function y = kermedcond(x,n)
