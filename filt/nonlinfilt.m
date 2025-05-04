@@ -1,4 +1,4 @@
-function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts, pool)
+function result = nonlinfilt(method, varargin, kwargs, opts, pool)
     %% Filter data by multi dimensional sliding window and multi argument nonlinear kernel.
     % `varargin` is a positional argument corresponding to the data.
     %
@@ -73,25 +73,24 @@ function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts, pool)
         kwargs.stride {mustBeA(kwargs.stride, {'double', 'cell'})} = [] % window stride
         kwargs.offset {mustBeA(kwargs.offset, {'double', 'cell'})} = [] % window offset
         kwargs.cast (1,:) char {mustBeMember(kwargs.cast, {'int8', 'int16', 'int32', 'int64'})} = 'int32'
-        kwargs.padval = nan % padding value
+        kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string', 'logical', 'cell'})} = nan % padding value
         opts.verbose logical {mustBeScalarOrEmpty} = false % logger
         opts.ans {mustBeMember(opts.ans, {'array', 'cell', 'filedatastore'})} = 'array'
+        opts.paral (1,1) logical = true
         opts.usefiledatastore (1, 1) logical = false
         opts.useparallel (1,1) logical = false
         opts.extract {mustBeMember(opts.extract, {'readall', 'writeall'})} = 'readall'
         pool.poolsize = {16, 16}
-        pool.resources {mustBeA(pool.resources, {'cell'}), mustBeMember(pool.resources, {'Processes', 'Threads'})} = {'Threads', 'Threads'}
+        pool.resources {mustBeA(pool.resources, {'cell'}), mustBeMember(pool.resources, {'Processes', 'Threads'})} = {'Processes', 'Threads'}
     end
 
     arguments (Output)
         result
-        szfilt
     end
 
     % prepare pool
     poolarg = cellfun(@(x,y){x,y}, pool.resources, pool.poolsize, UniformOutput = false);
-    delete(gcp('nocreate'))
-    parpool(poolarg{1}{:});
+    poolswitcher(poolarg{1}{:});
 
     timer = tic;
 
@@ -147,8 +146,7 @@ function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts, pool)
         dsf = fileDatastore(opts.folder, FileExtensions = '.mat', ReadFcn = @ReadFcn);
         dsft = transform(dsf, @(x) {opts.method(x{1:end-1}), x{end}});
 
-        delete(gcp('nocreate'))
-        parpool(poolarg{2}{:});
+        poolswitcher(poolarg{2}{:});
 
         switch opts.extract
             case 'readall'
@@ -178,18 +176,17 @@ function [result, szfilt] = nonlinfilt(method, varargin, kwargs, opts, pool)
 
     switch opts.ans
         case 'array'
+            tf = isscalar(result);
             result = cell2arr(result);
-
             if isvector(result)
-                resh = kwargs.szfilt;
+                shape = kwargs.szfilt;
             else
-                resh = [size(result, 1:ndims(result)-1), kwargs.szfilt];
+                szout = size(result);
+                if ~tf; szout = szout(1:end-1); end
+                shape = [szout, kwargs.szfilt];
             end
-
-            result = squeeze(reshape(result, resh));
+            result = squeeze(reshape(result, shape));
     end
-
-    szfilt = kwargs.szfilt;
 
     if opts.verbose; disp(strcat("nonlinfilt: elapsed time is ", num2str(toc(timer)), " seconds")); end
 

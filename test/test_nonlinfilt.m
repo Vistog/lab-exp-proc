@@ -3,7 +3,7 @@
     kernel = [1, nan, nan], stride = [2, 2, 1], offset = [-3, 0], ...
     isfiltpass = true, verbose=true, cast = 'int16');
 %%
-clearAllMemoizedCaches
+
 
 %%
 clc
