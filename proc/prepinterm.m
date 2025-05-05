@@ -21,7 +21,7 @@ function result = prepinterm(data, kwargs)
         % prefilter type
         kwargs.prefilt (1,:) char {mustBeMember(kwargs.prefilt, {'none', 'gaussian', 'average', 'median', 'wiener', 'wiener-median', 'mode'})} = 'gaussian'
         kwargs.prefiltker (1,:) double = [3, 3] % prefilter kernel size
-        kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string'})} = 'symmetric' % padding value
+        kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string', 'logical', 'cell'})} = 'symmetric' % padding value
         % fill missing data
         kwargs.fillmiss (1,:) char {mustBeMember(kwargs.fillmiss, {'none', 'linear', 'nearest', 'natural', 'cubic', 'v4'})} = 'none'
         kwargs.pow (1,1) double = 2 % raise to the power
@@ -40,7 +40,10 @@ function result = prepinterm(data, kwargs)
         % postfilter
         kwargs.postfiltker (1,:) double = [15, 15] % postfilter kernel size
         %% optional
-        kwargs.paral (1,1) logical = true
+        kwargs.resources {mustBeA(kwargs.resources, {'cell'}), mustBeMember(kwargs.resources, {'Processes', 'Threads'})} = {'Threads', 'Threads'}
+        kwargs.usefiledatastore (1, 1) logical = false
+        kwargs.useparallel (1,1) logical = false
+        kwargs.extract {mustBeMember(kwargs.extract, {'readall', 'writeall'})} = 'readall'
     end
 
     result = [];
@@ -51,19 +54,13 @@ function result = prepinterm(data, kwargs)
         % norm velocity
         if kwargs.norm && isfield(data, 'U') && isfield(data, 'W')
             if kwargs.fillmiss ~= "none"
-                data.U = imfilt(data.U, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
-                data.W = imfilt(data.W, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
+                data.U = imfilt(data.U, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true);
+                data.W = imfilt(data.W, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true);
             end
             Vm = hypot(data.U, data.W);
             if ~ismatrix(Vm); Vm = mean(Vm, 3); end
             u = u./Vm;
             w = w./Vm;
-        end
-    
-        % fillmissing
-        if kwargs.fillmiss ~= "none"
-            data.u = imfilt(data.u, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
-            data.w = imfilt(data.w, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true, paral = kwargs.paral);
         end
     end
 
@@ -72,9 +69,14 @@ function result = prepinterm(data, kwargs)
     % processing
     switch kwargs.type
         case 'dirgrad'
-            result = dirgrad(u, w, kwargs.angle, component = kwargs.component, diffilt = kwargs.diffilt, ...
-                prefilt = kwargs.prefilt, prefiltker = kwargs.prefiltker);
-            if ~isempty(kwargs.pow); result = result.^kwargs.pow; end
+            handl = @(u,w,~) dirgrad(u, w, kwargs.angle, component = kwargs.component, ...
+                diffilt = kwargs.diffilt, fillmiss = kwargs.fillmiss, ...
+                prefilt = kwargs.prefilt, prefiltker = kwargs.prefiltker, ...
+                postfilt = kwargs.postfilt, postfiltker = kwargs.postfiltker, pow = kwargs.pow);
+
+            result = nonlinfilt(handl, u, w, kernel = [nan, nan], padval = false, ...
+                resources = kwargs.resources, usefiledatastore = kwargs.usefiledatastore, ...
+                useparallel = kwargs.useparallel, extract = kwargs.extract);
         case 'l2'
             result = vortind(u, w, type = 'l2', diffilt = kwargs.diffilt, prefilt = kwargs.prefilt, abs = kwargs.abs, ...
                 prefiltker = kwargs.prefiltker, threshold = kwargs.threshold, pow = kwargs.pow, eigord = kwargs.eigord);
@@ -92,9 +94,5 @@ function result = prepinterm(data, kwargs)
             result = nonlinfilt(v, kernel = kernel, method = @(x) diffilt*x(:), padval = kwargs.padval);
             if ~isempty(kwargs.pow); result = result.^kwargs.pow; end
     end
-    clear u w Vm;
-
-    % postprocessing
-    result = imfilt(result, filt = kwargs.postfilt, filtker = kwargs.postfiltker, padval = kwargs.padval);
-
+    
 end

@@ -118,11 +118,15 @@ function result = nonlinfilt(method, varargin, kwargs, opts, pool)
         for j = 1:size(kwargs.outbound{i}, 1)
             padsize = zeros(1, size(kwargs.outbound{i}, 1));
             padsize(j) = kwargs.outbound{i}(j, 1);
-            varargin{i} = padarray(varargin{i}, padsize, kwargs.padval{i}{j}, 'pre');
+            if sum(padsize) ~= 0
+                varargin{i} = padarray(varargin{i}, padsize, kwargs.padval{i}{j}, 'pre');
+            end
 
             padsize = zeros(1, size(kwargs.outbound{i}, 1));
             padsize(j) = kwargs.outbound{i}(j, 2);
-            varargin{i} = padarray(varargin{i}, padsize, kwargs.padval{i}{j}, 'post');
+            if sum(padsize) ~= 0
+                varargin{i} = padarray(varargin{i}, padsize, kwargs.padval{i}{j}, 'post');
+            end
         end
     end
 
@@ -143,6 +147,8 @@ function result = nonlinfilt(method, varargin, kwargs, opts, pool)
     end
 
     if opts.usefiledatastore
+        varargin = cellfun(@(x) [], varargin, UniformOutput = false);
+
         dsf = fileDatastore(opts.folder, FileExtensions = '.mat', ReadFcn = @ReadFcn);
         dsft = transform(dsf, @(x) {opts.method(x{1:end-1}), x{end}});
 
