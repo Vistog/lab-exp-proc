@@ -70,6 +70,7 @@ function varargout = guihist(varargin, kwargs, opt)
         kwargs.clim double = [] % color-axis limit
         kwargs.colormap (1,:) char = 'turbo' % colormap name
         kwargs.colorbarloc (1,:) char = 'eastoutside'
+        kwargs.levels (1,:) double = 100;
         kwargs.markersize double = 3 % 
         kwargs.cdf logical = false % plot cdf of statistics
         kwargs.cumsum logical = false % plot cumulative sum of statistics
@@ -469,7 +470,7 @@ function varargout = guihist(varargin, kwargs, opt)
                 if kwargs.aspect ~= "auto"; axis(axroi, kwargs.aspect); end
             case 'spatial'
                 % hold(axroi, 'off'); grid(axroi, 'on'); box(axroi, 'on');
-                contourf(axroi, kwargs.x, kwargs.z, varargin{1}(:,:,1), 100, 'LineStyle', 'None'); 
+                contourf(axroi, kwargs.x, kwargs.z, varargin{1}(:,:,1), kwargs.levels, 'LineStyle', 'None'); 
                 grid(axroi, 'on'); box(axroi, 'on');
                 xlim([min(kwargs.x(:)), max(kwargs.x(:))]);
                 ylim([min(kwargs.z(:)), max(kwargs.z(:))]);

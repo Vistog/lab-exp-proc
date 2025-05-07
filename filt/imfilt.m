@@ -7,7 +7,7 @@ function data = imfilt(data, kwargs, opts)
         kwargs.filt (1,:) char {mustBeMember(kwargs.filt, {'none', 'gaussian', 'average', 'median', 'wiener', 'fillmiss', 'mediancond'})} = 'gaussian'
         kwargs.filtker double = [3, 3] % kernel size
         kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string', 'logical', 'cell'})} = nan % padding value
-        kwargs.method (1,:) char {mustBeMember(kwargs.method, {'linear', 'nearest', 'natural', 'cubic', 'v4'})} = 'nearest' % at specifying `filtker=fillmiss`
+        kwargs.method (1,:) char {mustBeMember(kwargs.method, {'none', 'linear', 'nearest', 'natural', 'cubic', 'v4'})} = 'nearest' % at specifying `filtker=fillmiss`
         kwargs.zero2nan (1,1) logical = true
         kwargs.verbose (1,1) logical = false
         kwargs.mediancondvars (1,2) double = [1, 1]
@@ -16,7 +16,6 @@ function data = imfilt(data, kwargs, opts)
         opts.extract {mustBeMember(opts.extract, {'readall', 'writeall'})} = 'readall'
         opts.poolsize = {16, 16}
         opts.resources {mustBeA(opts.resources, {'cell'}), mustBeMember(opts.resources, {'Processes', 'Threads'})} = {'Threads', 'Threads'}
-
     end
 
     arguments (Output)
@@ -30,16 +29,29 @@ function data = imfilt(data, kwargs, opts)
                 useparallel = opts.useparallel, extract = opts.extract, ...
                 resources = opts.resources);
         case 'median'
-            data = nonlinfilt(@(x,~) median(x(:), 'omitmissing'), data, kernel = kwargs.filtker, ...
-                padval = kwargs.padval, verbose = kwargs.verbose, usefiledatastore = opts.usefiledatastore, ...
-                useparallel = opts.useparallel, extract = opts.extract, ...
-                resources = opts.resources);
-        case 'fillmiss'
-            if kwargs.zero2nan; data(data==0) = nan; end
-            data = nonlinfilt(@(x,~) fillmissing2(x, kwargs.method), data, kernel = [nan, nan], padval = false, ...
+            kerfunc = @(y,~) nonlinfilt(@(x,~) median(x(:), 'omitmissing'), y, kernel = kwargs.filtker, padval = kwargs.padval);
+
+            data = nonlinfilt(kerfunc, data, kernel = [nan, nan], padval = false, ...
                 verbose = kwargs.verbose, usefiledatastore = opts.usefiledatastore, ...
                 useparallel = opts.useparallel, extract = opts.extract, ...
                 resources = opts.resources);
+
+            % m = numel(kwargs.filtker);
+            % n = ndims(data) - numel(kwargs.filtker);
+            % kwargs.padval = cat(2, repmat({kwargs.padval}, 1, m), repmat({false}, 1, n));
+            % 
+            % data = nonlinfilt(@(x,~) median(x(:), 'omitmissing'), data, kernel = kwargs.filtker, ...
+            %     padval = kwargs.padval, verbose = kwargs.verbose, usefiledatastore = opts.usefiledatastore, ...
+            %     useparallel = opts.useparallel, extract = opts.extract, ...
+            %     resources = opts.resources);
+        case 'fillmiss'
+            if kwargs.method ~= "none"
+                if kwargs.zero2nan; data(data==0) = nan; end
+                data = nonlinfilt(@(x,~) fillmissing2(x, kwargs.method), data, kernel = [nan, nan], padval = false, ...
+                    verbose = kwargs.verbose, usefiledatastore = opts.usefiledatastore, ...
+                    useparallel = opts.useparallel, extract = opts.extract, ...
+                    resources = opts.resources);
+            end
         case 'mediancond'
             data = nonlinfilt(@(x,~) kermedcond(x, kwargs.mediancondvars), data, kernel = kwargs.filtker, ...
                 padval = kwargs.padval, verbose = kwargs.verbose, usefiledatastore = opts.usefiledatastore, ...

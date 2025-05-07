@@ -42,6 +42,8 @@ function varargout = prepcta(input, kwargs)
         kwargs.zfit = [] % fitobj transfrom to leading edge coordinate system
         kwargs.steps (1,:) double = [50, 800, 400] % single step displacement of step motor in um
         kwargs.label (1,:) char = []
+        kwargs.ort (2,:) double = [] %% LE coordinate system reference points
+        kwargs.skew (2,:) double = [] %% skew coordinate system reference points
     end
 
     % parse inputs
@@ -159,12 +161,16 @@ function varargout = prepcta(input, kwargs)
                                     kwargs.skew = [0, 0; 0, 2e4; 1e3, 2e4; 1e3, 0]; % count
                                     
                             end
+                        end
+
+                        if ~isempty(kwargs.skew) && ~isempty(kwargs.ort)
                             % fit 
                             [xf,yf,zf] = prepareSurfaceData(kwargs.skew(:,1),kwargs.skew(:,2),kwargs.ort(:,1));
                             kwargs.xfit = fit([xf,yf],zf,'poly11');
                             [xf,yf,zf] = prepareSurfaceData(kwargs.skew(:,1),kwargs.skew(:,2),kwargs.ort(:,2));
                             kwargs.zfit = fit([xf,yf],zf,'poly11');
                         end
+
                         % transform to LE coordinate system
                         if ~isempty(kwargs.xfit); xtemp = kwargs.xfit(x,z); else; xtemp = x/kwargs.steps(1); end
                         if ~isempty(kwargs.zfit); ztemp = kwargs.zfit(x,z); else; ztemp = z/kwargs.steps(3); end

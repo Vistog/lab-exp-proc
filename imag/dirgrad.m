@@ -19,11 +19,9 @@ function varargout = dirgrad(u, w, angle, kwargs)
         kwargs.prefiltker double = [3, 3] % prefilter kernel size
         kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string', 'logical', 'cell'})} = 'symmetric' % padding value
         kwargs.pow (1,1) double = 2 % raise to the power
-        %% postprocessing parameters
         % portfilter type
-        kwargs.postfilt (1,:) char {mustBeMember(kwargs.postfilt, {'none', 'gaussian', 'average', 'median', 'wiener', 'wiener-median', 'mode'})} = 'median'
-        % postfilter
-        kwargs.postfiltker (1,:) double = [15, 15] % postfilter kernel size
+        kwargs.postfilt (1,:) char {mustBeMember(kwargs.postfilt, {'none', 'gaussian', 'average', 'median', 'wiener'})} = 'none'
+        kwargs.postfiltker (1,:) double = [] % postfilter kernel size
         %%
         kwargs.ans {mustBeMember(kwargs.ans, {'array', 'cell'})} = 'array'
     end
@@ -60,7 +58,7 @@ function varargout = dirgrad(u, w, angle, kwargs)
             ind = 1:4;
     end
 
-    % derivation
+    % differentiation
     dudx = imfilter(u, difker(:,:,1), 'symmetric'); dudz = imfilter(u, difker(:,:,2), 'symmetric');
     dwdx = imfilter(w, difker(:,:,1), 'symmetric'); dwdz = imfilter(w, difker(:,:,2), 'symmetric');
 

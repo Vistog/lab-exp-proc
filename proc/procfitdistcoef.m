@@ -38,7 +38,7 @@ function fitdistcoef =  procfitdistcoef(data, kwargs)
         % method to filter intermittency field
         kwargs.postfilt (1,:) char {mustBeMember(kwargs.postfilt, {'none', 'average', 'gaussian', 'median', 'wiener', 'mode'})} = 'median'
         kwargs.postfiltker double = [5, 5] % kernel of filtering intermittency field
-        kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string'})} = 'symmetric' % padding value
+        kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string', 'logical', 'cell'})} = 'symmetric' % padding value
         %% support parameters
         kwargs.verbose (1,1) logical = true
         %% optional
@@ -106,5 +106,7 @@ function fitdistcoef =  procfitdistcoef(data, kwargs)
     fitdistcoef = imdresize(fitdistcoef, szd(1:2));
 
     if kwargs.verbose; disp(strcat("procfitdistcoef: elapsed time is ", num2str(toc(timer)), " seconds")); end
+
+    clearAllMemoizedCaches
 
 end

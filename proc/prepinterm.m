@@ -78,8 +78,17 @@ function result = prepinterm(data, kwargs)
                 resources = kwargs.resources, usefiledatastore = kwargs.usefiledatastore, ...
                 useparallel = kwargs.useparallel, extract = kwargs.extract);
         case 'l2'
-            result = vortind(u, w, type = 'l2', diffilt = kwargs.diffilt, prefilt = kwargs.prefilt, abs = kwargs.abs, ...
-                prefiltker = kwargs.prefiltker, threshold = kwargs.threshold, pow = kwargs.pow, eigord = kwargs.eigord);
+            handl = @(u,w,~) vortind(u, w, type = 'l2', diffilt = kwargs.diffilt, prefilt = kwargs.prefilt, abs = kwargs.abs, ...
+                prefiltker = kwargs.prefiltker, threshold = kwargs.threshold, pow = kwargs.pow, eigord = kwargs.eigord, ...
+                postfilt = kwargs.postfilt, postfiltker = kwargs.postfiltker, fillmiss = kwargs.fillmiss);
+
+            result = nonlinfilt(handl, u, w, kernel = [nan, nan], padval = false, ...
+                resources = kwargs.resources, usefiledatastore = kwargs.usefiledatastore, ...
+                useparallel = kwargs.useparallel, extract = kwargs.extract);
+
+            % result = vortind(u, w, type = 'l2', diffilt = kwargs.diffilt, prefilt = kwargs.prefilt, abs = kwargs.abs, ...
+            %     prefiltker = kwargs.prefiltker, threshold = kwargs.threshold, pow = kwargs.pow, eigord = kwargs.eigord, ...
+            %     postfilt = kwargs.postfilt, postfiltker = kwargs.postfiltker);
         case 'q'
             result = vortind(u, w, type = 'q', diffilt = kwargs.diffilt, prefilt = kwargs.prefilt, abs = kwargs.abs, ...
                 prefiltker = kwargs.prefiltker, threshold = kwargs.threshold, pow = kwargs.pow);
@@ -87,12 +96,25 @@ function result = prepinterm(data, kwargs)
             result = vortind(u, w, type = 'd', diffilt = kwargs.diffilt, prefilt = kwargs.prefilt, abs = kwargs.abs, ...
                 prefiltker = kwargs.prefiltker, threshold = kwargs.threshold, pow = kwargs.pow);
         case 'vm'
+           
+            % velocity fill missing
+            u = imfilt(u, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true);
+            w = imfilt(w, filt = 'fillmiss', method = kwargs.fillmiss, zero2nan = true);
+        
+            % velocity prefiltering
+            u = imfilt(u, filt = kwargs.prefilt, filtker = kwargs.prefiltker);
+            w = imfilt(w, filt = kwargs.prefilt, filtker = kwargs.prefiltker);
+
             result = hypot(u, w);
+
+            result = imfilt(result, filt = kwargs.postfilt, filtker = kwargs.postfiltker);
         case 'dt'
             diffilt = difkernel(kwargs.diffilt); diffilt = diffilt(:,1)';
             kernel = ones(1, ndims(v)); kernel(kwargs.dirdim) = numel(diffilt);
             result = nonlinfilt(v, kernel = kernel, method = @(x) diffilt*x(:), padval = kwargs.padval);
             if ~isempty(kwargs.pow); result = result.^kwargs.pow; end
     end
+
+    clearAllMemoizedCaches
     
 end
