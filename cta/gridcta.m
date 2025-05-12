@@ -187,7 +187,7 @@ function varargout = gridcta(varargin, kwargs)
 
     % show a scan grid
     if kwargs.show 
-        if kwargs.docked; figure(WindowStyle = 'Docked'); else; figure; end
+        if kwargs.docked; figure(WindowStyle = 'Docked'); else; clf; end
         tile = tiledlayout('flow');
         ax = nexttile(tile); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on'); axis(ax, 'square')
         colors = colororder;

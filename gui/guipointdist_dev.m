@@ -1,4 +1,4 @@
-function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, axparamfunc, axparamaxis, ...
+function varargout = guipointdist_dev(varargin, kwargs, kwargsplt, figparam, axparamset, axparamfunc, axparamaxis, ...
     pltparam, roiparam, lgd, clb, inter)
     arguments (Input, Repeating)
         varargin {mustBeA(varargin, {'numeric', 'cell'})}
@@ -64,6 +64,7 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         roiparam.position (1,:) cell = {}
         roiparam.number (1,:) cell = {}
         roiparam.label {mustBeA(roiparam.label, {'char', 'cell'})} = ''
+        roiparam.sliceddims = [];
         %% `legend` parameters
         lgd.legend (1,:) logical = false
         lgd.ltitle (1,:) {mustBeA(lgd.ltitle, {'char', 'string'})} = ''
@@ -90,65 +91,40 @@ function varargout = guiplot(varargin, kwargs, kwargsplt, figparam, axparamset, 
         varargout
     end
 
-    if isempty(kwargs.dims)
-        switch kwargsplt.plot
-            case 'plot'
-                kwargs.dims = 1;
-            otherwise
-                kwargs.dims = [1, 2];
-        end
-    end
+    if nargin == 1; error('`nargin` must be greater than 1'); end
 
-    % parse data to cell array
-    data = cell(numel(kwargs.dims) + 1, 1);
-    [data{:}] = splitdatcell(varargin{:}, dims = kwargs.dims);
+    data = varargin(1:nargin-1);
+    marker = varargin(nargin);
+    slice = {};
 
-    if figparam.docked; figure(WindowStyle = 'docked'); else; clf; end
-    tl = tiledlayout(figparam.arrangement, TileSpacing = figparam.TileSpacing, Padding = figparam.Padding);
+    if isempty(roiparam.sliceddims); roiparam.sliceddims = ndims(marker)-2; end
 
-    switch kwargs.ax
-        case '1-n'
-            kwargsplt.target = nexttile(tl);
-        case '1-1'
-            kwargsplt.target = tl;
-    end
+    rois = guiplot(data{:}, plot = 'contourf', linestyle = 'none', ax = '1-n', draw = {'drawpoint'},...
+        target = {1}, number = {2});
 
-    % prepare and combine named argumetns for axis appeariance
-    temp = cellfun(@namedargs2cell, {kwargsplt, axparamset, axparamfunc, axparamaxis, pltparam, lgd, clb, inter}, UniformOutput = false);
-    arg = {}; for i = 1:numel(temp); arg = cat(2, arg, temp{i}); end
+    ax = nexttile;
 
-    % plot data
-    [plts, axs] = plotdatcell(data{:}, arg{:});
+    addlistener(rois{1}{1}, 'ROIMoved', @moving);
 
-    % create roi instances
-    if roiparam.draw ~= "none"
+    varargout = rois;
 
-        if isempty(roiparam.target); roiparam.target = {1}; end
-        if isempty(roiparam.number); roiparam.number = {1}; end
-        if isempty(roiparam.position); roiparam.position = {[]}; end
+    function prepslice()
         
-        if isa(roiparam.interaction, 'char'); roiparam.interaction = {roiparam.interaction}; end
-        if isa(roiparam.label, 'char'); roiparam.label = {roiparam.label}; end
-    
-        if isscalar(roiparam.target); roiparam.target = repelem(roiparam.target, 1, numel(roiparam.draw)); end
-        if isscalar(roiparam.number); roiparam.number = repelem(roiparam.number, 1, numel(roiparam.draw)); end
-        if isscalar(roiparam.position); roiparam.position = repelem(roiparam.position, 1, numel(roiparam.draw)); end
-        if isscalar(roiparam.interaction); roiparam.interaction = repelem(roiparam.interaction, 1, numel(roiparam.draw)); end
-        if isscalar(roiparam.label); roiparam.label = repelem(roiparam.label, 1, numel(roiparam.draw)); end
-    
-        target = cell(1, numel(roiparam.target));
-    
-        for i = 1:numel(roiparam.target)
-            if isempty(roiparam.target{i}); target{i} = axs{i}; else; target{i} = plts{roiparam.target{i}}; end
-        end
-        roiparam = rmfield(roiparam, 'target');
-
-        args = namedargscomb(target, roiparam, ans = 'arg');
-    
-        rois = cellfun(@(arg) guiroi(arg{:}), args, UniformOutput = false);
-    
-        varargout{1} = rois;
-
     end
+
+    function moving(~, evt)
+
+        ind = cellfun(@(m) cellfun(@(x) 1:x, num2cell(size(m)), UniformOutput = false), marker, UniformOutput = false);
+
+        subind = evt.Source.UserData.subind;
+        ind{1}(roiparam.sliceddims) = subind;
+
+        slice = squeeze(marker(ind{:}));
+
+        cla(ax); hold(ax, 'on'); set(ax, XScale = 'log', YScale = 'log')
+        plot(ax, slice)
+        % ylim(ax,[1e-8, 1e1])
+    end
+
 
 end

@@ -23,7 +23,7 @@ function varargout = prepcta(input, kwargs)
         kwargs.winfuncor (1,1) logical = true % spectra power correction at weighting data by window function
         kwargs.winlen double = 4096 % window function width
         kwargs.overlap double = 3072 % window function overlap
-        kwargs.offset (1,:) {mustBeA(kwargs.offset, {'double', 'cell '})} = [] % sliding window offset at performing STFT
+        kwargs.offset (1,:) {mustBeA(kwargs.offset, {'double', 'cell '})} = 0 % sliding window offset at performing STFT
         kwargs.center (1,1) logical = true % normalize data
         kwargs.fs (1,1) double = 25e3 % frequency sampling
         kwargs.norm (1,:) char {mustBeMember(kwargs.norm, {'none', 'rms'})} = 'rms' % spectra norm, `rms` means assertion sqrt(sum(spec))=rms(x)
@@ -85,7 +85,7 @@ function varargout = prepcta(input, kwargs)
                         spectrumtype = kwargs.spectrumtype, freqrange = kwargs.freqrange);
                 case 'manual'
                     [spec, f] = procspecn(kwargs.raw, winfun = kwargs.winfun, winlen = kwargs.winlen, ...
-                        overlap = kwargs.overlap, fs = kwargs.fs, ftdim = 1, chdim = 2, output = 'cell', ...
+                        overlap = kwargs.overlap, fs = kwargs.fs, ftdim = 1, chdim = 2, ans = 'cell', ...
                         norm = true, center = kwargs.center, offset = kwargs.offset);
             end
             df = f(2)-f(1);

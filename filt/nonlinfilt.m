@@ -76,7 +76,6 @@ function result = nonlinfilt(method, varargin, kwargs, opts, pool)
         kwargs.padval {mustBeA(kwargs.padval, {'double', 'char', 'string', 'logical', 'cell'})} = nan % padding value
         opts.verbose logical {mustBeScalarOrEmpty} = false % logger
         opts.ans {mustBeMember(opts.ans, {'array', 'cell', 'filedatastore'})} = 'array'
-        opts.paral (1,1) logical = true
         opts.usefiledatastore (1, 1) logical = false
         opts.useparallel (1,1) logical = false
         opts.extract {mustBeMember(opts.extract, {'readall', 'writeall'})} = 'readall'

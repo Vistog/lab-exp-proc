@@ -5,10 +5,10 @@ function res = namedargscomb(varargin, param)
         varargin
     end
     arguments (Input)
-        param.ans {mustBeMember(param.ans, {'table', 'cell'})} = 'table'
+        param.ans {mustBeMember(param.ans, {'table', 'cell', 'arg'})} = 'table'
     end
     arguments (Output)
-        res {mustBeA(res, {'table', 'cell'})}
+        res {mustBeA(res, {'table', 'cell', 'arg'})}
     end
 
     s = struct; k = 1;
@@ -42,6 +42,28 @@ function res = namedargscomb(varargin, param)
         case 'cell'
             res = combinations(arg{:});
             res = table2cell(res);
+        case 'arg'
+            res = combinations(arg{:});
+            res = table2cell(res);
+            
+            ind = [];
+            for i = 1:size(res, 2)
+                temp = res(1,i); temp = temp{1};
+                if isa(temp, 'char') | isa(temp, 'string')
+                    if contains(temp, 'Var')
+                        ind = cat(2, ind, i);
+                    end
+                end
+            end
+
+            res(:,ind) = [];
+
+            temp = cell(size(res, 1), 1);
+            for i = 1:size(res, 1)
+                temp{i} = res(i,:);
+            end
+
+            res = temp;
     end
 
 end
